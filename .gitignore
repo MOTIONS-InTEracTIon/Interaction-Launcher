@@ -13,6 +13,10 @@
 # Asset Store Packages
 /[Aa]ssets/Thirdparty/
 
+# Downloads
+/[Aa]ssets/StreamingAssets/*/download
+/[Aa]ssets/StreamingAssets/*/build
+
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
 

@@ -1,0 +1,33 @@
+{
+    "baseStrings": 
+        {
+            "apptitle": "InTeractiOn Launcher",
+            "experience": "Experience",
+            "version": "Version: ",
+            "versionCheck": "Checking version...",
+            "versionMissing": "Not found, download needed.",
+            "versionUpdateNeeded": "Update needed.",
+            "versionUpToDate": "Experience is up to date.",
+            "download": "Download",
+            "exitButton": "Exit"
+        },
+    "experienceStrings": [
+        {
+            "1": 
+            {
+                "title": "Default title 1",
+                "description": "Description 1"
+            },
+        "2":
+            {
+                "title": "Default title 2",
+                "description": "Description 2"
+            },
+        "3":
+            {
+                "title": "Default title 3",
+                "description": "Description 3"
+            }
+        }
+    ]
+}

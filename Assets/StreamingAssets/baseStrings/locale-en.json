@@ -1,0 +1,15 @@
+{
+    "language": "Language: ",
+    "experienceList": "Experience list",
+    "status": "Status: ",
+    "version": "Version =>",
+    "currentVersion": "Current: ",
+    "latestVersion": "Latest: ",
+    "versionCheck": "Checking version...",
+    "versionMissing": "Not found, download needed.",
+    "versionUpdateNeeded": "Update needed.",
+    "versionUpToDate": "Up to date.",
+    "download": "Download",
+    "exitButton": "Exit",
+    "errorLocale": "The locale file was not found."
+}
