@@ -18,9 +18,10 @@
     "credentials_error": "Credenciales no configuradas",
     "locale_error1": "Una o más experiencias no tienen archivo de idioma ",
     "locale_error2" : "",
-    "versionMissing": "No encontrado, descarga necesaria.",
-    "versionUpdateNeeded": "Actualización necesaria.",
-    "versionUpToDate": "Al día.",
+    "versionMissing": "Ninguna.",
+    "versionDownloadNeeded": "Descarga necesaria, presionar el botón de descarga para iniciar la descarga.",
+    "versionUpdateNeeded": "Actualización necesaria, presionar el botón de descarga para iniciar la actualización.",
+    "versionUpToDate": "Al día, presionar Iniciar para abrir.",
     "launchButton": "Iniciar",
     "exitButton": "Salir",
     "empty": ""

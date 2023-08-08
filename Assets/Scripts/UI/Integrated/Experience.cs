@@ -2,11 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.NetworkInformation;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
+
 
 [RequireComponent(typeof(FadeUI))]
 public class Experience : MonoBehaviour
@@ -14,7 +15,8 @@ public class Experience : MonoBehaviour
     // Components
     [SerializeField] public CarouselScrollview mediaCarousel;
     [SerializeField] public TextMeshProUGUI status; // Info Components 
-    [SerializeField] public LocaleText statusText;
+    [SerializeField] public LocaleText statusTextLocale;
+    [SerializeField] public LocaleText currentVersionTextLocale;
     [SerializeField] public TextMeshProUGUI currentVersionText;
     [SerializeField] public TextMeshProUGUI latestVersionText;
     [SerializeField] public ProgressBar downloadProgressBar;
@@ -73,14 +75,21 @@ public class Experience : MonoBehaviour
     // Changes status component in version info
     private void SetStatus(string groupKey, string stringKey)
     {
-        statusText.groupKey = groupKey;
-        statusText.stringKey = stringKey;
-        statusText.UpdateText();
+        statusTextLocale.groupKey = groupKey;
+        statusTextLocale.stringKey = stringKey;
+        statusTextLocale.UpdateText();
     }
     private void SetStatus(string groupKey, string stringKey, string addedText)
     {
         SetStatus(groupKey, stringKey);
         status.text = status.text + " " + addedText;
+    }
+    // Changes actual version component in version info
+    private void SetVersion(string groupKey, string stringKey)
+    {
+        currentVersionTextLocale.groupKey = groupKey;
+        currentVersionTextLocale.stringKey = stringKey;
+        currentVersionTextLocale.UpdateText();
     }
     private void SetRepoInfo()
     {
@@ -117,13 +126,29 @@ public class Experience : MonoBehaviour
     {
         // Set github strings
         SetRepoInfo();
+        // Get actual version
+        GetActualRelease();
         // Get latest version
         yield return StartCoroutine(GetLatestVersionCoroutine());
     }
 
-    
+    // Checks for actual release from build folder
+    private void GetActualRelease()
+    {
+        actualVersion = "None";
+        string versionPath = Path.GetDirectoryName(Application.dataPath) + "/version.txt";
+        if (File.Exists(versionPath))
+        {
+            currentVersionText.text = File.ReadAllText(versionPath);
+        }
+        else
+        {
+            SetVersion("baseStrings", "versionMissing");
+        }
+
+    }
     // Downloads latest release from github
-    public void GetLatestRelease()
+    private void GetLatestRelease()
     {
         if (initialized)
         {
@@ -154,8 +179,23 @@ public class Experience : MonoBehaviour
                 {
                     latestVersionText.text = releaseInfo.tag_name + " (" + SizeFormatter.FormatSize(releaseInfo.assets[0].size) + ")";
                     // If the version is correctly downloaded, you compare it to know if download or update is needed
-                    // Uncomplete path
                     SetStatus("baseStrings", "info_done");
+                    if(actualVersion == "None")
+                    {
+                        SetStatus("baseStrings", "versionDownloadNeeded");
+                    }
+                    else
+                    {
+                        if (actualVersion == releaseInfo.tag_name)
+                        {
+                            SetStatus("baseStrings", "versionUpToDate");
+                        }
+                        else
+                        {
+                            SetStatus("baseStrings", "versionUpdateNeeded");
+                        }
+                    }
+
                 }
             }
             else
@@ -323,17 +363,22 @@ public class Experience : MonoBehaviour
             ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "download_error") + www.error, 5);
             yield break;
         }
-
-        SetStatus("baseStrings", "download_done");
-        // If the file is downloaded successfully it must be handled to be used (Unzipping, etc)
-        SetStatus("baseStrings", "unzip");
-        yield return StartCoroutine(UnzipInstall(downloadPath, buildFolderPath, downloadName));
-        // After handling the file and putting it into build, download is officially completed and a file containing the tag version must be created
-        SetStatus("baseStrings", "install");
-        if (update) 
+        else
         {
-            SetStatus("baseStrings", "update");
+            SetStatus("baseStrings", "download_done");
+            // If the file is downloaded successfully it must be handled to be used (Unzipping, etc)
+            SetStatus("baseStrings", "unzip");
+            yield return StartCoroutine(UnzipInstall(downloadPath, buildFolderPath, downloadName));
+            // After handling the file and putting it into build, download is officially completed and a file containing the tag version must be created
+            File.WriteAllText(Path.GetDirectoryName(Application.dataPath) + "/version.txt", downloadName);
+            SetStatus("baseStrings", "install");
+            if (update)
+            {
+                SetStatus("baseStrings", "update");
+            }
         }
+
+
     }
 
     // Needs path for the zip
@@ -352,8 +397,11 @@ public class Experience : MonoBehaviour
             SetStatus("baseStrings", "unzip_error");
             yield break;
         }
-        // Write version for successfull install 
-        SetStatus("baseStrings", "unzip_done");
+        else
+        {
+            // Write version for successfull install 
+            SetStatus("baseStrings", "unzip_done");
+        }
 
         yield return null;
     }
