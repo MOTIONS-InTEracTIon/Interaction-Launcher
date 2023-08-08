@@ -97,6 +97,11 @@ public class LocalizationController : MonoBehaviour
     // Fetches string from currentLocaleStrings
     public string FetchString(string groupKey, string stringKey)
     {
+        if(stringKey == "")
+        {
+            return "";
+        }
+
         if(groupKey == "baseStrings")
         {
             if (baseStrings.TryGetValue(stringKey, out var localizedString))

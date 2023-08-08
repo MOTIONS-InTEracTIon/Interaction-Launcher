@@ -24,7 +24,10 @@ public class LocaleText : LocaleComponent
 
     public override void UpdateText()
     {
-        textBox.text = LocalizationController.instance.FetchString(groupKey,stringKey);
+        if(LocalizationController.instance.FetchString(groupKey, stringKey) != "")
+        {
+            textBox.text = LocalizationController.instance.FetchString(groupKey, stringKey);
+        }
     }
 
 }

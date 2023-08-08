@@ -15,6 +15,7 @@
     "unzip_done": "Archivos Zip descomprimidos.",
     "install": "Instalado correctamente.",
     "update": "Actualizado correctamente",
+    "updateMain": "Actualizado correctamente, reiniciar la aplicación.",
     "credentials_error": "Credenciales no configuradas",
     "locale_error1": "Una o más experiencias no tienen archivo de idioma ",
     "locale_error2" : "",

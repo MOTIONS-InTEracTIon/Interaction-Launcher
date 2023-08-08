@@ -15,6 +15,7 @@
     "unzip_done": "Unzip done.",
     "install": "Successfully installed.",
     "update": "Successfully updated",
+    "updateMain": "Successfully updated, restart the app.",
     "credentials_error": "Credentials not set",
     "locale_error1": "One or more experiences have no  ",
     "locale_error2" : " locale file",

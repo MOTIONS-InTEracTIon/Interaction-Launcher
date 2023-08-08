@@ -127,19 +127,31 @@ public class Experience : MonoBehaviour
         // Set github strings
         SetRepoInfo();
         // Get actual version
-        GetActualRelease();
+        GetCurrentRelease();
         // Get latest version
         yield return StartCoroutine(GetLatestVersionCoroutine());
     }
 
-    // Checks for actual release from build folder
-    private void GetActualRelease()
+    // Checks for current release from build folder
+    private void GetCurrentRelease()
     {
         actualVersion = "None";
-        string versionPath = Path.GetDirectoryName(Application.dataPath) + "/version.txt";
+        string versionPath;
+        // Get version.txt
+        if (experienceId == 0)
+        {
+            versionPath = Path.GetDirectoryName(Application.dataPath) + "/version.txt";
+        }
+        else
+        {
+            versionPath = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build" + "/version.txt";
+        }
+
+        // Set current release
         if (File.Exists(versionPath))
         {
             currentVersionText.text = File.ReadAllText(versionPath);
+            actualVersion = currentVersionText.text;
         }
         else
         {
@@ -370,11 +382,28 @@ public class Experience : MonoBehaviour
             SetStatus("baseStrings", "unzip");
             yield return StartCoroutine(UnzipInstall(downloadPath, buildFolderPath, downloadName));
             // After handling the file and putting it into build, download is officially completed and a file containing the tag version must be created
-            File.WriteAllText(Path.GetDirectoryName(Application.dataPath) + "/version.txt", downloadName);
+            if(!(experienceId == 0))
+            {
+                File.WriteAllText(Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build" + "/version.txt", downloadName);
+            }
+            else
+            {
+                File.WriteAllText(Path.GetDirectoryName(Application.dataPath) + "/version.txt", downloadName);
+            }
+
+            currentVersionText.text = downloadName;
             SetStatus("baseStrings", "install");
             if (update)
             {
-                SetStatus("baseStrings", "update");
+                if(!(experienceId == 0))
+                {
+                    SetStatus("baseStrings", "update");
+                }
+                else
+                {
+                    SetStatus("baseStrings", "updateMain");
+                }
+                
             }
         }
 
