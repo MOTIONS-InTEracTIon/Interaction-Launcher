@@ -26,4 +26,5 @@ public class LocaleText : LocaleComponent
     {
         textBox.text = LocalizationController.instance.FetchString(groupKey,stringKey);
     }
+
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
 using UnityEngine.UI;
@@ -47,10 +48,10 @@ public class ExperienceController : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         // Experience fetching
-        InitializeExperiences();
+        StartCoroutine(InitializeExperiences());
     }
 
-    private void InitializeExperiences()
+    public IEnumerator InitializeExperiences()
     {
         experiences = new List<Experience>();
         // experienceToggles always starts with logo Toggle so we don't initialize it
@@ -58,6 +59,8 @@ public class ExperienceController : MonoBehaviour
         GetExperiences();
         // Fill experienceToggle list with toggles
         GetExperienceToggles();
+        // Initialize component
+        yield return StartCoroutine(experiences[0].Initialize());
     }
 
     private void GetExperiences()
@@ -112,7 +115,7 @@ public class ExperienceController : MonoBehaviour
         experiences[componentId].gameObject.SetActive(true);
         actualExperienceCardId = componentId;
         // Initialize component
-        yield return experiences[componentId].Initialize();
+        yield return StartCoroutine(experiences[componentId].Initialize());
         // FadeIn new component
         FadeUI newComponentFader = experiences[componentId].GetComponent<FadeUI>();
         yield return StartCoroutine(newComponentFader.FadeIn());

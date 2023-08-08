@@ -175,7 +175,7 @@ public class LocalizationController : MonoBehaviour
             }
             else
             {
-                ErrorController.instance.ShowError("Experience locale file for " + localeName + " was not found.", 5);
+                ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "locale_error1") + localeName + LocalizationController.instance.FetchString("baseStrings", "locale_error2"), 5);
                 return;
             }
         }
