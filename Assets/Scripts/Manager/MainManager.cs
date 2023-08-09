@@ -24,6 +24,9 @@ public class MainManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
+        // Write data
+        VersionInfo.WriteVersionToFile();
+
         // Initialize controllers
         errorController.Initialize();
         mediaController.Initialize();

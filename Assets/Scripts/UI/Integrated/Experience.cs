@@ -1,13 +1,16 @@
+using ICSharpCode.SharpZipLib.Zip;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.NetworkInformation;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
-
+using UnityEngine.UI;
+using static UnityEditor.Progress;
 
 [RequireComponent(typeof(FadeUI))]
 public class Experience : MonoBehaviour
@@ -20,8 +23,13 @@ public class Experience : MonoBehaviour
     [SerializeField] public TextMeshProUGUI currentVersionText;
     [SerializeField] public TextMeshProUGUI latestVersionText;
     [SerializeField] public ProgressBar downloadProgressBar;
+    [SerializeField] public LocaleTextButton launchButton;
+    [SerializeField] public Button downloadButton;
 
     // Data
+    private Process experienceProcess;
+    public string executableFilePath;
+
     public string actualVersion;
     public string latestVersion;
     
@@ -36,6 +44,11 @@ public class Experience : MonoBehaviour
     public List<string> resultFolders;
     // Github auth
 
+    // Coroutine
+    private bool isApiOperationRunning;
+    private bool isExperienceRunning;
+
+
     #region Data Operations
     public IEnumerator Initialize()
     {
@@ -43,7 +56,9 @@ public class Experience : MonoBehaviour
         ClearData();
         // Refresh strings
         LocalizationController.instance.ApplyLocale();
-        // Set up images
+        // Set up data THIS WILL CHANGE TO A JSON THAT STORES DATA ABOUT THE APP, LIKE THE EXECUTABLE PATH AND NAME
+        // For the time being, change this directly in the inspector
+        // Set up images THIS WILL CHANGE TO A JSON THAT STORES DATA ABOUT THE APP, LIKE A LIST OF MEDIA FILES
         if (mediaCarousel != null)
         {
             mediaCarousel.Clear();
@@ -53,7 +68,7 @@ public class Experience : MonoBehaviour
 
         // Set repo info
         SetRepoInfo();
-        // Get version //// TO GET THIS TO WORK I NEED A WAY TO DOWNLOAD THE VERSIONS TO COMPARE FIRST
+        // Get version
         yield return StartCoroutine(GetLatestVersion());
 
         initialized = true;
@@ -62,6 +77,7 @@ public class Experience : MonoBehaviour
     private void ClearData()
     {
         // Reset all data
+        isApiOperationRunning = false;
         actualVersion = "";
         latestVersion = "";
         status.text = "...";
@@ -70,7 +86,62 @@ public class Experience : MonoBehaviour
         githubOwner = null;
         githubRepo = null;
         githubAuthorizationKey = null;
+        SetLaunchButton(false);
+        SetDownloadButton(false);
     }
+
+    // Experience launching
+    public void LaunchExperience()
+    {
+        // Starting setup
+        if (isApiOperationRunning)
+        {
+            return;
+        }
+
+        SetLaunchButton(false);
+        SetDownloadButton(false);
+
+        // Inject inputs
+        // Injecting input logic here
+
+        // Launch
+        if(experienceProcess == null || experienceProcess.HasExited)
+        {
+            StartCoroutine(RunProcess());
+        } 
+    }
+
+    private IEnumerator RunProcess()
+    {
+        // Run the process
+        experienceProcess = new Process();
+        experienceProcess.StartInfo.FileName = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build/" + executableFilePath;
+        experienceProcess.Start();
+        isExperienceRunning = true;
+
+        // Change Launch text to running
+        SetLaunchButton("baseStrings", "launchButton_running");
+
+        // Will wait for process to end
+        while(!experienceProcess.HasExited)
+        {
+            yield return null;
+        }
+        isExperienceRunning = false;
+
+        // Once its done, reenable buttons and name
+        SetLaunchButton("baseStrings", "launchButton");
+        SetLaunchButton(true);
+        yield return StartCoroutine(GetLatestVersion());
+
+    }
+
+    //
+
+    #endregion
+
+    #region Settings
 
     // Changes status component in version info
     private void SetStatus(string groupKey, string stringKey)
@@ -90,6 +161,12 @@ public class Experience : MonoBehaviour
         currentVersionTextLocale.groupKey = groupKey;
         currentVersionTextLocale.stringKey = stringKey;
         currentVersionTextLocale.UpdateText();
+    }
+    private void SetLaunchButton(string groupKey, string stringKey)
+    {
+        launchButton.localeText.groupKey = groupKey;
+        launchButton.localeText.stringKey = stringKey;
+        launchButton.localeText.UpdateText();
     }
     private void SetRepoInfo()
     {
@@ -115,6 +192,33 @@ public class Experience : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void SetLaunchButton(bool activate)
+    {
+        if (launchButton != null)
+        {
+            if (activate)
+            {
+                launchButton.button.interactable = true;
+            }
+            else
+            {
+                launchButton.button.interactable = false;
+            }
+        }
+    }
+
+    private void SetDownloadButton(bool activate)
+    {
+        if (activate)
+        {
+            downloadButton.interactable = true;
+        }
+        else
+        {
+            downloadButton.interactable = false;
+        }
     }
 
     #endregion
@@ -170,7 +274,13 @@ public class Experience : MonoBehaviour
 
     // Github API methods
     private IEnumerator GetLatestVersionCoroutine()
+    {
+        if(isApiOperationRunning)
         {
+            yield break;
+        }
+        isApiOperationRunning = true;
+
         if (CheckRepoInfo())
         {
             SetStatus("baseStrings","info");
@@ -194,17 +304,38 @@ public class Experience : MonoBehaviour
                     SetStatus("baseStrings", "info_done");
                     if(actualVersion == "None")
                     {
+                        // There is not a version that can be launched, so launch stays disabled and download is enabled
+                        SetDownloadButton(true); // UI Update
                         SetStatus("baseStrings", "versionDownloadNeeded");
                     }
                     else
                     {
+                        // There is a version that can be launched so enable the launch button but only on experiences that have a launch button
+                        SetLaunchButton(true); // UI Update
                         if (actualVersion == releaseInfo.tag_name)
                         {
-                            SetStatus("baseStrings", "versionUpToDate");
+                            if (!(experienceId == 0))
+                            {
+                                SetStatus("baseStrings", "versionUpToDate");
+                            }
+                            else
+                            {
+                                SetStatus("baseStrings", "versionUpToDateMain");
+                            }
+
                         }
                         else
                         {
-                            SetStatus("baseStrings", "versionUpdateNeeded");
+                            // There is a version that can be launched so launch was enabled and download is enabled
+                            SetDownloadButton(true);
+                            if (!(experienceId == 0))
+                            {
+                                SetStatus("baseStrings", "versionUpdateNeeded");
+                            }
+                            else
+                            {
+                                SetStatus("baseStrings", "versionUpdateMainNeeded");
+                            }
                         }
                     }
 
@@ -222,9 +353,17 @@ public class Experience : MonoBehaviour
             SetStatus("baseStrings", "info_error", LocalizationController.instance.FetchString("baseStrings", "credentials_error"));
             ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "info_error") + LocalizationController.instance.FetchString("baseStrings", "credentials_error"), 5);
         }
+
+        isApiOperationRunning = false;
     }
     private IEnumerator GetLatestReleaseCoroutine()
     {
+        if (isApiOperationRunning)
+        {
+            yield break;
+        }
+        isApiOperationRunning = true;
+
         SetStatus("baseStrings", "info");
 
         if (CheckRepoInfo())
@@ -260,6 +399,8 @@ public class Experience : MonoBehaviour
             SetStatus("baseStrings", "info_error", LocalizationController.instance.FetchString("baseStrings", "credentials_error"));
             ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "info_error") + LocalizationController.instance.FetchString("baseStrings", "credentials_error"), 5);
         }
+
+        isApiOperationRunning = false;
     }
 
     private void ClearFolders()
@@ -284,35 +425,13 @@ public class Experience : MonoBehaviour
             }
         }
 
-        // Turn resultFolders into paths
-        List<string> resultPaths = new List<string>();
-        for (int i = 0; i < resultFolders.Count; i++)
-        {
-            resultPaths.Add(Application.dataPath + "/" + resultFolders[i]);
-        }
-
         // Delete all files from application path except the output folders specified in resultFolders
         if (Directory.Exists(buildPath))
         {
-            string[] applicationFilesAndSubfolders = Directory.GetFileSystemEntries(buildPath);
-            foreach (string item in applicationFilesAndSubfolders)
-            {
-                if (resultFolders.Contains(item))
-                {
-                    continue;
-                }
-
-                if (File.Exists(item))
-                {
-                    File.Delete(item);
-                }
-                else if (Directory.Exists(item))
-                {
-                    Directory.Delete(item, true);
-                }
-            }
+            FolderHelper.DeleteFoldersRecursively(buildPath, resultFolders);
         }
     }
+
 
     private IEnumerator DownloadAsset(string downloadUrl, string downloadName)
     {
@@ -321,20 +440,13 @@ public class Experience : MonoBehaviour
         // Download
         SetStatus("baseStrings", "download");
         string downloadFolderPath = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/download";
-        string downloadPath = downloadFolderPath + "/" + downloadName + ".rar";
-        // Build path is different for main app
-        string buildFolderPath;
-        if (experienceId == 0)
-        {
-            buildFolderPath = Path.GetDirectoryName(Application.dataPath);
-        }
-        else
-        {
-            buildFolderPath = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build";
-        }
+        string downloadPath = downloadFolderPath + "/" + downloadName + ".zip";
+        string buildFolderPath = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build";
+        string versionPath = buildFolderPath + "/version.txt";
+
         // Is this a clear download or an update?
         bool update = false;
-        if (Directory.Exists(buildFolderPath))
+        if (actualVersion != "None")
         {
             update = true;
         }
@@ -345,6 +457,13 @@ public class Experience : MonoBehaviour
         {
             Directory.CreateDirectory(downloadFolderPath);
         }
+        // Delete version if download fails midway
+        if (File.Exists(versionPath))
+        {
+            File.Delete(versionPath);
+        }
+
+
         UnityWebRequest www = UnityWebRequest.Get(downloadUrl);
         www.SetRequestHeader("Authorization", $"token {githubAuthorizationKey}");
         www.SetRequestHeader("User-Agent", "InTeraciOn Launcher");
@@ -352,7 +471,6 @@ public class Experience : MonoBehaviour
 
         DownloadHandlerFile downloadHandler = new DownloadHandlerFile(downloadPath);
         www.downloadHandler = downloadHandler;
-
 
         www.SendWebRequest();
         //Track progress download
@@ -379,40 +497,45 @@ public class Experience : MonoBehaviour
         {
             SetStatus("baseStrings", "download_done");
             // If the file is downloaded successfully it must be handled to be used (Unzipping, etc)
-            SetStatus("baseStrings", "unzip");
-            yield return StartCoroutine(UnzipInstall(downloadPath, buildFolderPath, downloadName));
+            if(!(experienceId == 0))
+            {
+                SetStatus("baseStrings", "install");
+                yield return StartCoroutine(UnzipInstall(downloadPath, buildFolderPath));
+            }
+
             // After handling the file and putting it into build, download is officially completed and a file containing the tag version must be created
             if(!(experienceId == 0))
             {
-                File.WriteAllText(Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build" + "/version.txt", downloadName);
+                SetLaunchButton(true); // UI Update
+                SetDownloadButton(false); // UI Update
+
+                File.WriteAllText(versionPath, downloadName);
+                SetStatus("baseStrings", "install_done");
+                if (update)
+                {
+                    SetStatus("baseStrings", "update_done");
+                }
+                currentVersionText.text = downloadName;
+
+                // Delete downloaded file
+                File.Delete(downloadPath);
             }
             else
             {
-                File.WriteAllText(Path.GetDirectoryName(Application.dataPath) + "/version.txt", downloadName);
-            }
-
-            currentVersionText.text = downloadName;
-            SetStatus("baseStrings", "install");
-            if (update)
-            {
-                if(!(experienceId == 0))
-                {
-                    SetStatus("baseStrings", "update");
-                }
-                else
-                {
-                    SetStatus("baseStrings", "updateMain");
-                }
-                
+                SetStatus("baseStrings", "updatemain_done");
             }
         }
-
-
     }
 
     // Needs path for the zip
-    private IEnumerator UnzipInstall(string zipPath, string unzipPath, string versionTag)
+    private IEnumerator UnzipInstall(string zipPath, string unzipPath)
     {
+        if (isExperienceRunning || !Path.GetExtension(zipPath).Equals(".zip"))
+        {
+            SetStatus("baseStrings", "install_error");
+            yield break;
+        }
+
         string buildPath = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build/";
 
         // Verify that it exists
@@ -421,24 +544,60 @@ public class Experience : MonoBehaviour
             Directory.CreateDirectory(buildPath);
         }
         // Unzip
-        if (!UnzipperHelper.Unzip(zipPath, unzipPath))
-        {
-            SetStatus("baseStrings", "unzip_error");
-            yield break;
-        }
-        else
-        {
-            // Write version for successfull install 
-            SetStatus("baseStrings", "unzip_done");
-        }
-
-        yield return null;
+        yield return StartCoroutine(UnzipCoroutine(zipPath,unzipPath));
     }
 
+    private IEnumerator UnzipCoroutine(string zipFilePath, string extractionPath)
+    {
+        using (var zipFile = new ZipFile(zipFilePath))
+        {
+            long totalBytes = 0;
+            foreach (ZipEntry entry in zipFile)
+            {
+                if (!entry.IsFile)
+                    continue;
 
+                totalBytes += entry.Size;
+            }
 
+            long processedBytes = 0;
+            byte[] buffer = new byte[4096 * 16]; // Larger buffer
 
+            foreach (ZipEntry entry in zipFile)
+            {
+                if (!entry.IsFile)
+                    continue;
 
+                var entryStream = zipFile.GetInputStream(entry);
+                var entryPath = Path.Combine(extractionPath, entry.Name);
+
+                // Create directories if they don't exist
+                Directory.CreateDirectory(Path.GetDirectoryName(entryPath));
+
+                using (var outputStream = File.Create(entryPath))
+                {
+                    int bytesRead;
+                    float lastProgress = 0f;
+                    while ((bytesRead = entryStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        outputStream.Write(buffer, 0, bytesRead);
+                        processedBytes += bytesRead;
+
+                        float progress = (float)processedBytes / totalBytes;
+
+                        // Only change last progress if there is progress
+                        if (progress != lastProgress)
+                        {
+                            downloadProgressBar.UpdateFill(progress);
+                            lastProgress = progress;
+                        }
+                    }
+
+                    yield return null; // Yield once per file
+                }
+            }
+        }
+    }
 
     #endregion
 

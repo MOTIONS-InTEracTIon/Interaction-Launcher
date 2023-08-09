@@ -2,6 +2,7 @@
     "language": "Language: ",
     "experienceList": "Experiences",
     "status": "Status: ",
+
     "currentVersion": "Current version: ",
     "latestVersion": "Latest version: ",
     "info": "Fetching version...",
@@ -10,20 +11,25 @@
     "download": "Downloading...",
     "download_error": "Failed to download asset: ",
     "download_done": "Files downloaded.",
-    "unzip": "Unzipping...",
-    "unzip_error": "Unzip error.",
-    "unzip_done": "Unzip done.",
-    "install": "Successfully installed.",
-    "update": "Successfully updated",
-    "updateMain": "Successfully updated, restart the app.",
+    "install": "Installing...",
+    "install_error": "Unzip error, release extension must be .zip and the experience can't be running.",
+    "install_done": "Successfully installed.",
+    "update_done": "Successfully updated, press Launch to start",
+    "updatemain_done": "Package downloaded to .../Data/StreamingAssets/0/download/",
+
     "credentials_error": "Credentials not set",
     "locale_error1": "One or more experiences have no  ",
     "locale_error2" : " locale file",
+
     "versionMissing": "Not found.",
     "versionDownloadNeeded": "Download needed, press download button to start downloading.",
     "versionUpdateNeeded": "Update needed, press download button to start updating.",
     "versionUpToDate": "Up to date, press Launch to start.",
+    "versionUpToDateMain": "Up to date.",
+    "versionUpdateMainNeeded": "Update needed, press download to get the latest package",
+    
     "launchButton": "Launch",
+    "launchButton_running": "Running...",
     "exitButton": "Exit",
     "empty": ""
 }
