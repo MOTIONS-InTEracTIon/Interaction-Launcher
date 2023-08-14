@@ -14,21 +14,48 @@ public class LocaleOptionDropdown : MonoBehaviour
     public string groupKey;
     public string stringKey;
 
-    public void FillDropdown(List<string> options)
+    // Data
+    public List<string> originalOptions;
+
+    private void OnEnable()
+    {
+        if(groupKey != null && stringKey != null)
+        {
+            SetFirstOptionLocale();
+        }
+    }
+
+    public void FillDropdown(List<string> options, string contentType)
     {
         dropdown.interactable = false;
 
         dropdown.options.Clear();
         SetFirstOptionLocale();
         // Get current options
+        originalOptions = options;
         List<TMP_Dropdown.OptionData> optionData = dropdown.options;
         // Add options
         foreach (string option in options)
         {
-            optionData.Add(new TMP_Dropdown.OptionData(option));
+            if (contentType == "Input")
+            {
+                string betterVisualOption = option.Replace(@"\s{2,}", "");
+                string[] optionParts = betterVisualOption.Split("/");
+                if (optionParts[1].Length > 4)
+                {
+                    optionParts[1] = optionParts[1].Substring(0, 4) + "...";
+                }
+                betterVisualOption = "/" + optionParts[1] + "/" + optionParts[2];
+                optionData.Add(new TMP_Dropdown.OptionData(betterVisualOption));
+            }
+            else if (contentType == "Device")
+            {
+                optionData.Add(new TMP_Dropdown.OptionData(option));
+            }
+
         }
 
-        if(optionData.Count > 1)
+        if (optionData.Count > 1)
         {
             dropdown.interactable = true;
         }

@@ -19,6 +19,7 @@ public class UIInputBinder : MonoBehaviour
     // Data
     private string inputName;
     private string inputType;
+    private string deviceName;
 
     #region Data Operations
 
@@ -55,45 +56,50 @@ public class UIInputBinder : MonoBehaviour
     {
         if(devicesDropdown.dropdown.value == 0)
         {
+            bindingLocaleOptionDropdown.dropdown.interactable = false;
             return;
         }
 
         // Get device inputs
-        TMP_Dropdown.OptionData deviceOption = devicesDropdown.dropdown.options[devicesDropdown.dropdown.value];
-        string deviceName = deviceOption.text;
-        InputDevice device = InputSystem.GetDevice(deviceName);
+        ReadOnlyArray<InputControl> inputs = new ReadOnlyArray<InputControl>();
+        try
+        {
+            TMP_Dropdown.OptionData deviceOption = devicesDropdown.dropdown.options[devicesDropdown.dropdown.value];
+            string deviceName = deviceOption.text;
+            InputDevice device = InputSystem.GetDevice(deviceName);
 
-        ReadOnlyArray<InputControl> inputs = device.allControls;
+            inputs = device.allControls;
+        }
+        catch
+        {
+            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "input_error_device"),5);
+
+        }
+
+
         // Cycle through every and change the options depending on the binder type 
         List<string> inputPaths = new List<string>();
         foreach(InputControl inputControl in inputs)
         {
-            string controltype = GetInputControlType(inputControl);
-            
-            if(controltype == inputType) 
+            string controltype = inputControl.layout;
+
+            if (controltype == inputType)
             {
-                inputPaths.Add(inputControl.path);
+                inputPaths.Add(inputControl.layout + inputControl.path);
             }
             else if (inputType == "Button" && controltype == "Key")
             {
-                inputPaths.Add(inputControl.path);
+                inputPaths.Add(inputControl.layout + inputControl.path);
             }
         }
 
-        bindingLocaleOptionDropdown.FillDropdown(inputPaths);
+        bindingLocaleOptionDropdown.FillDropdown(inputPaths, "Input");
+
 
         if(inputPaths.Count > 1)
         {
             bindingLocaleOptionDropdown.dropdown.interactable = true;
         }
-    }
-
-    private string GetInputControlType(InputControl inputControl)
-    {
-        string[] pathParts = inputControl.path.Split('/');
-        string controlType = pathParts[0];
-
-        return controlType;
     }
 
     //This function will get more robust with type conversion patches (For example, to map to a Vector3 with a Vector2 or to use Keys or buttons to make an Axis go up and down)

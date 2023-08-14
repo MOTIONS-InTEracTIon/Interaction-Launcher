@@ -31,6 +31,8 @@
     "inputButton": "Configuración Input",
     "input_title": "Menu de Configuración de Input",
     "input_hardware": "Dispositivo hardware a configurar: ",
+    "input_error_nomapping": "No hay input_mapping en la experiencia, esta se añade antes de subir el Release.",
+    "input_error_device": "Problema al conectar con el dispositivo, intentelo nuevamente.",
 
     "input_binder_name": "Nombre del Input: ",
     "input_binder_type": "Tipo de Input: ",

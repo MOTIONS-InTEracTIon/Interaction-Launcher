@@ -56,10 +56,10 @@ public class InputConfiguration : MonoBehaviour
         // Create list of Dropdown with input device names
         foreach (InputDevice device in devices)
         {
-            deviceNames.Add(device.displayName);
+            deviceNames.Add(device.name);
         }
 
-        devicesDropdown.FillDropdown(deviceNames);
+        devicesDropdown.FillDropdown(deviceNames, "Device");
 
     }
 

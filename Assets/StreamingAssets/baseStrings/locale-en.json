@@ -32,6 +32,7 @@
     "input_title": "Input Configuration Menu",
     "input_hardware": "Hardware to set inputs to: ",
     "input_error_nomapping": "Experience has no input_mapping file, this should be added before releasing the experience",
+    "input_error_device": "Couldn't connect to device, try again.",
 
     "input_binder_name": "Input Name: ",
     "input_binder_type": "Input Type: ",
