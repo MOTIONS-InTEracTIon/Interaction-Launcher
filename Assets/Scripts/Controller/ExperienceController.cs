@@ -185,7 +185,5 @@ public class ExperienceController : MonoBehaviour
         isChangeCardRunning = false;
     }
 
-    // Does initial tasks in a 
-
     #endregion
 }

@@ -27,6 +27,17 @@
     "versionUpToDate": "Up to date, press Launch to start.",
     "versionUpToDateMain": "Up to date.",
     "versionUpdateMainNeeded": "Update needed, press download to get the latest package",
+
+    "inputButton": "Input Configuration",
+    "input_title": "Input Configuration Menu",
+    "input_hardware": "Hardware to set inputs to: ",
+    "input_error_nomapping": "Experience has no input_mapping file, this should be added before releasing the experience",
+
+    "input_binder_name": "Input Name: ",
+    "input_binder_type": "Input Type: ",
+    "input_binder_binding": "Input Binding: ",
+    "input_binder_defaultdevice": "None",
+    "input_binder_defaultbinding": "Default",
     
     "launchButton": "Launch",
     "launchButton_running": "Running...",

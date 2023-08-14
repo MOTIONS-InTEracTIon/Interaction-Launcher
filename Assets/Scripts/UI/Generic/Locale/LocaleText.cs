@@ -12,7 +12,6 @@ public class LocaleText : LocaleComponent
     public string groupKey;
     public string stringKey;
 
-
     public string GetData()
     {
         return textBox.text;

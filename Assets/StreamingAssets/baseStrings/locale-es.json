@@ -28,6 +28,16 @@
     "versionUpToDateMain": "Versión al día.",
     "versionUpdateMainNeeded": "Actualización necesaria, presionar descargar para obtener última versión",
 
+    "inputButton": "Configuración Input",
+    "input_title": "Menu de Configuración de Input",
+    "input_hardware": "Dispositivo hardware a configurar: ",
+
+    "input_binder_name": "Nombre del Input: ",
+    "input_binder_type": "Tipo de Input: ",
+    "input_binder_binding": "Asignación de Input: ",
+    "input_binder_defaultdevice": "Ninguno",
+    "input_binder_defaultbinding": "Predeterminado",
+
     "launchButton": "Iniciar",
     "launchButton_running": "En ejecución...",
     "exitButton": "Salir",
