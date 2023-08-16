@@ -5,23 +5,31 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.UI;
+using System;
 
 public class UIInputBinder : MonoBehaviour
 {
     // Other references 
-    private LocaleOptionDropdown devicesDropdown; 
+    private InputConfiguration inputConfiguration;
+    private LocaleOptionDropdown devicesDropdown;
 
     // Components
     [SerializeField] TMP_InputField nameInputField;
     [SerializeField] TMP_InputField typeInputField;
-    [SerializeField] LocaleOptionDropdown bindingLocaleOptionDropdown;
+    [SerializeField] public LocaleOptionDropdown bindingLocaleOptionDropdown;
 
     // Data
+    private string inputMap;
     private string inputName;
     private string inputType;
     private string deviceName;
+    private string pathBinding;
+    public bool canSelect;
 
-    #region Data Operations
+    // Settings
+    public string inputModeName;
+
+    #region Initialize
 
     private void OnEnable()
     {
@@ -33,30 +41,44 @@ public class UIInputBinder : MonoBehaviour
         InputConfiguration.OnInputDeviceSelected -= SetBindingDropdown;
     }
 
-    public void Initialize(string map, string name, string type, LocaleOptionDropdown dropdown)
+    public void Initialize(string map, string name, string type, string modeName, string pathBinding, InputConfiguration inputWindow)
     {
         bindingLocaleOptionDropdown.dropdown.interactable = false;
-        devicesDropdown = dropdown;
+        canSelect = false;
+        inputConfiguration = inputWindow;
+        devicesDropdown = inputConfiguration.devicesDropdown;
         // Load strings into new component
         LocalizationController.instance.ApplyLocale();
         // Load info into binder
-        LoadInfo(map, name, type);
+        LoadInfo(map, name, type, modeName, pathBinding);
+        // Disable Binder before a mode is chosen
+        this.gameObject.SetActive(false);
     }
 
-    private void LoadInfo(string map, string name, string type)
+    private void LoadInfo(string map, string name, string type, string modeName, string pathBinding)
     {
-        inputName = map + " (" + name + ")";
+        inputMap = map;
+        inputName = name;
         inputType = type;
+        inputModeName = modeName;
+        this.pathBinding = pathBinding;
 
-        nameInputField.text = inputName;
+        bindingLocaleOptionDropdown.SetFirstOptionString(pathBinding);
+
+        nameInputField.text = name + " (" + map + ")";
         typeInputField.text = inputType;
     }
+
+    #endregion
+
+    #region Data Operations
 
     private void SetBindingDropdown()
     {
         if(devicesDropdown.dropdown.value == 0)
         {
             bindingLocaleOptionDropdown.dropdown.interactable = false;
+            canSelect = false;
             return;
         }
 
@@ -79,6 +101,7 @@ public class UIInputBinder : MonoBehaviour
 
         // Cycle through every and change the options depending on the binder type 
         List<string> inputPaths = new List<string>();
+        // Input Type Compatibility code part, will eventually use GetCompatibleControlType
         foreach(InputControl inputControl in inputs)
         {
             string controltype = inputControl.layout;
@@ -95,10 +118,9 @@ public class UIInputBinder : MonoBehaviour
 
         bindingLocaleOptionDropdown.FillDropdown(inputPaths, "Input");
 
-
         if(inputPaths.Count > 1)
         {
-            bindingLocaleOptionDropdown.dropdown.interactable = true;
+            canSelect = true;
         }
     }
 
@@ -111,7 +133,17 @@ public class UIInputBinder : MonoBehaviour
         
     //}
 
+    public void UpdateBindSaveData()
+    {
+        // If a path was set, we need to know what it was
+        pathBinding = bindingLocaleOptionDropdown.originalOptions[bindingLocaleOptionDropdown.dropdown.value];
+        if(pathBinding == LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultbinding"))
+        {
+            pathBinding = "Default";
+        }
+
+        inputConfiguration.UpdateInputPersistance(inputMap, inputName, inputType, inputModeName, pathBinding);
+    }
+
     #endregion
-
-
 }

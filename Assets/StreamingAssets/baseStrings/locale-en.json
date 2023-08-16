@@ -30,6 +30,7 @@
 
     "inputButton": "Input Configuration",
     "input_title": "Input Configuration Menu",
+    "input_mode": "Mapping mode: ",
     "input_hardware": "Hardware to set inputs to: ",
     "input_error_nomapping": "Experience has no input_mapping file, this should be added before releasing the experience",
     "input_error_device": "Couldn't connect to device, try again.",
@@ -38,6 +39,7 @@
     "input_binder_type": "Input Type: ",
     "input_binder_binding": "Input Binding: ",
     "input_binder_defaultdevice": "None",
+    "input_binder_defaultmode": "None",
     "input_binder_defaultbinding": "Default",
     
     "launchButton": "Launch",

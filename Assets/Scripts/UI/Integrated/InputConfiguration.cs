@@ -8,6 +8,7 @@ using UnityEngine.InputSystem.Utilities;
 using TMPro;
 using System;
 using System.IO;
+using JetBrains.Annotations;
 
 public class InputConfiguration : MonoBehaviour
 {
@@ -15,14 +16,20 @@ public class InputConfiguration : MonoBehaviour
     [SerializeField] private GameObject inputBinderPrefab;
 
     // Components
-    [SerializeField] private LocaleOptionDropdown devicesDropdown;
+    [SerializeField] public LocaleOptionDropdown devicesDropdown;
+    [SerializeField] public LocaleOptionDropdown modeDropdown;
     [SerializeField] private GameObject inputBinderContainer;
-    [SerializeField] private ScrollRect inputBinderScrollviewContent;
+    [SerializeField] private ScrollRect inputBinderScrollview;
+
 
     // Data
     private List<UIInputBinder> inputBinders;
+    private UIInputBinder currentOpenedInputBinder;
     public List<string> deviceNames = new List<string>();
-    private InputActionData[] experienceActionData;
+    public List<string> modeNames = new List<string>();
+    private bool isScrolling = false;
+    private bool enableDropdowns = true;
+    public List<InputActionModeData> experienceAllInputActionModeData;
 
     // Settings
     private int id;
@@ -31,9 +38,7 @@ public class InputConfiguration : MonoBehaviour
     // Events
     public static event Action OnInputDeviceSelected;
 
-
-    #region Data Operation
-
+    #region Initialize
     public void Initialize(int experienceId)
     {
         id = experienceId;
@@ -60,76 +65,170 @@ public class InputConfiguration : MonoBehaviour
         }
 
         devicesDropdown.FillDropdown(deviceNames, "Device");
+        devicesDropdown.dropdown.interactable = false;
 
     }
 
-    private void FillExperienceInputs() 
+    private void FillExperienceInputs()
     {
-        if(!(inputBinders.Count == 0))
+        if (!(inputBinders.Count == 0))
         {
             return;
         }
         // Get input_mapping file
-        LoadInputActionBindingsData();
+        experienceAllInputActionModeData = InputPersistanceController.instance.GetExperienceInputMapping(id).allInputActionModeData;
 
-        if (experienceActionData == null)
+        if (experienceAllInputActionModeData == null)
         {
             return;
         }
 
         // Create one inputBinder for each inputAction
-        foreach(InputActionData inputAction in experienceActionData)
+        foreach (InputActionModeData modeData in experienceAllInputActionModeData)
         {
-            UIInputBinder inputBinder = Instantiate(inputBinderPrefab, inputBinderContainer.transform).GetComponent<UIInputBinder>();
-            inputBinder.Initialize(inputAction.actionMap, inputAction.actionName , inputAction.controlType, devicesDropdown);
-            inputBinders.Add(inputBinder);
+            string inputModeName = modeData.modeName;
+            modeNames.Add(inputModeName);
+
+            foreach (InputActionData inputAction in modeData.inputActions)
+            {
+                UIInputBinder inputBinder = Instantiate(inputBinderPrefab, inputBinderContainer.transform).GetComponent<UIInputBinder>();
+                inputBinder.Initialize(inputAction.actionMap, inputAction.actionName, inputAction.controlType, inputModeName, inputAction.resultPathBinding, this);
+                inputBinders.Add(inputBinder);
+            }
+        }
+
+        modeDropdown.FillDropdown(modeNames, null);
+        inputBinderScrollview.onValueChanged.AddListener(OnScrollViewValueChanged);
+
+    }
+
+    #endregion
+
+    #region Data Operation
+
+    // Turn on and off respective binders using mode
+    public void UpdateBinders()
+    {
+        // Restart devices
+        devicesDropdown.dropdown.value = 0;
+        devicesDropdown.dropdown.RefreshShownValue();
+        // Get dropdown option
+        string mode = modeDropdown.dropdown.options[modeDropdown.dropdown.value].text;
+        // Enable and disable respective binders
+        int enabledBinders = 0;
+        foreach (UIInputBinder inputBinder in inputBinders)
+        {
+            if (inputBinder.inputModeName == mode)
+            {
+                inputBinder.gameObject.SetActive(true);
+                enabledBinders++;
+            }
+            else
+            {
+                inputBinder.gameObject.SetActive(false);
+            }
+        }
+
+        if (enabledBinders != 0)
+        {
+            devicesDropdown.dropdown.interactable = true;
+        }
+        else
+        {
+            devicesDropdown.dropdown.interactable = false;
         }
     }
 
-    public void UpdateBinders()
+    // Apply respective typed binds to every binder dropdown
+    public void UpdateBindersInput()
     {
-        // Apply respective typed binds to every binder dropdown
         OnInputDeviceSelected?.Invoke();
     }
 
-    #endregion
-
-
-    #region Persistence
-
-    private void LoadInputActionBindingsData()
+    // Handling scrollview
+    private void OnScrollViewValueChanged(Vector2 scrollValue)
     {
-        string path = Application.streamingAssetsPath + "/" + id.ToString() + "/build/input_mapping.json";
-        
-        if(!File.Exists(path))
+        isScrolling = true;
+        enableDropdowns = false;
+
+        HideDropdowns();
+
+        CancelInvoke("EnableDropdowns");
+        Invoke("EnableDropdowns", 0.5f);
+    }
+
+    private void HideDropdowns()
+    {
+        if (!(inputBinders != null && inputBinders.Count > 0))
         {
-            // If there is no input_mapping.json this will stop the initialization as a whole with error
-            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "input_error_nomapping"), 5);
             return;
         }
 
-        string json = File.ReadAllText(path);
+        foreach (UIInputBinder inputBinder in inputBinders)
+        {
+            TMP_Dropdown dropdown = inputBinder.bindingLocaleOptionDropdown.dropdown;
+            dropdown.Hide();
+            dropdown.interactable = false;
+        }
 
-        // Loads all binding data
-        experienceActionData = JsonUtility.FromJson<InputActionBindingsData>(json).inputActions;
+        Invoke("EnableDropdowns", 0.5f);
+    }
+
+    private void EnableDropdowns()
+    {
+        if (!(inputBinders != null && inputBinders.Count > 0))
+        {
+            return;
+        }
+
+        foreach (UIInputBinder inputBinder in inputBinders)
+        {
+            if (inputBinder.canSelect)
+            {
+                TMP_Dropdown dropdown = inputBinder.bindingLocaleOptionDropdown.dropdown;
+                dropdown.interactable = true;
+            }
+
+        }
+
+        isScrolling = false;
+    }
+    private void Update()
+    {
+        if (!isScrolling && enableDropdowns)
+        {
+            EnableDropdowns();
+        }
+    }
+    //
+
+    // Persistance
+    public void UpdateInputPersistance(string map, string name, string type, string modeName, string pathBinding)
+    {
+        // Modify the data
+        SetBinding(map, name, type, modeName, pathBinding);
+        // Save and send the data to experience
+        InputPersistanceController.instance.UpdateAllExperienceBindings(experienceAllInputActionModeData, id);
+    }
+
+    private void SetBinding(string map, string name, string type, string modeName, string pathBinding)
+    {
+        foreach(InputActionModeData modeData in experienceAllInputActionModeData)
+        {
+            if(modeData.modeName == modeName)
+            {
+                foreach(InputActionData inputActionData in modeData.inputActions)
+                {
+                    if(inputActionData.actionMap == map && inputActionData.actionName == name && inputActionData.controlType == type)
+                    {
+                        inputActionData.resultPathBinding = pathBinding;
+                    }
+                }
+            }
+        }
     }
 
     #endregion
 }
 
-#region Persistence classes
-[Serializable]
-    public class InputActionBindingsData
-    {
-        public InputActionData[] inputActions;
-    }
 
-    [Serializable]
-    public class InputActionData
-    {
-        public string actionMap;
-        public string actionName;
-        public string actionType;
-        public string controlType;
-}
-#endregion

@@ -32,7 +32,7 @@ public class LocalizationController : MonoBehaviour
 
     public static LocalizationController instance;
 
-    #region Data Operations
+    #region Initialize
     public void Initialize()
     {
         // Instance initializing
@@ -93,6 +93,10 @@ public class LocalizationController : MonoBehaviour
         languageDropdown.value = currentOptionIndex;
         languageDropdown.RefreshShownValue();
     }
+
+    #endregion
+
+    #region Data Operations
 
     // Fetches string from currentLocaleStrings
     public string FetchString(string groupKey, string stringKey)

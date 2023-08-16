@@ -704,6 +704,8 @@ MonoBehaviour:
   nameInputField: {fileID: 7129134715305633027}
   typeInputField: {fileID: 7381957598112234473}
   bindingLocaleOptionDropdown: {fileID: 5014830080987592219}
+  canSelect: 0
+  inputModeName: 
 --- !u!1 &5790017743053140297
 GameObject:
   m_ObjectHideFlags: 0
@@ -2381,6 +2383,18 @@ PrefabInstance:
       propertyPath: m_Options.m_Options.Array.size
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3519934306063309305, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 3765661323464658104}
+    - target: {fileID: 3519934306063309305, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: UpdateBindSaveData
+      objectReference: {fileID: 0}
+    - target: {fileID: 3519934306063309305, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UIInputBinder, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 3519934306063309306, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2447,6 +2461,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3519934307720292205, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
       propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5146944735211536096, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5440391527904790749, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
@@ -2531,6 +2549,26 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5440391527904790749, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7708717179808003175, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7852149026105779660, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7852149026105779660, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7852149026105779660, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7852149026105779660, guid: d2b79dfc9e94b084186b5b5f0de2a166, type: 3}
+      propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

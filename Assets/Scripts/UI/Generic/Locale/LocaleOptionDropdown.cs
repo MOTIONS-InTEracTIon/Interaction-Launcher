@@ -4,6 +4,7 @@ using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LocaleOptionDropdown : MonoBehaviour
 {
@@ -30,7 +31,9 @@ public class LocaleOptionDropdown : MonoBehaviour
         dropdown.interactable = false;
 
         dropdown.options.Clear();
+
         SetFirstOptionLocale();
+
         // Get current options
         originalOptions = options;
         List<TMP_Dropdown.OptionData> optionData = dropdown.options;
@@ -39,16 +42,9 @@ public class LocaleOptionDropdown : MonoBehaviour
         {
             if (contentType == "Input")
             {
-                string betterVisualOption = option.Replace(@"\s{2,}", "");
-                string[] optionParts = betterVisualOption.Split("/");
-                if (optionParts[1].Length > 4)
-                {
-                    optionParts[1] = optionParts[1].Substring(0, 4) + "...";
-                }
-                betterVisualOption = "/" + optionParts[1] + "/" + optionParts[2];
-                optionData.Add(new TMP_Dropdown.OptionData(betterVisualOption));
+                optionData.Add(new TMP_Dropdown.OptionData(InputFormat(option)));
             }
-            else if (contentType == "Device")
+            else
             {
                 optionData.Add(new TMP_Dropdown.OptionData(option));
             }
@@ -67,5 +63,33 @@ public class LocaleOptionDropdown : MonoBehaviour
         List<TMP_Dropdown.OptionData> optionData = dropdown.options;
         // Create locale option
         optionData.Add(new TMP_Dropdown.OptionData(LocalizationController.instance.FetchString(groupKey,stringKey)));
+    }
+
+    public void SetFirstOptionString(string firstOption)
+    {
+        // Get current options
+        List<TMP_Dropdown.OptionData> optionData = dropdown.options;
+        // Set string as first option
+        originalOptions.Insert(0, firstOption);
+        
+        optionData.Insert(0, new TMP_Dropdown.OptionData(InputFormat(firstOption)));
+    }
+
+    private string InputFormat(string input)
+    {
+        if (input == "Default")
+        {
+            return input;
+        }
+
+        string betterVisualOption = input.Replace(@"\s{2,}", "");
+        string[] optionParts = betterVisualOption.Split("/");
+        if (optionParts[1].Length > 4)
+        {
+            optionParts[1] = optionParts[1].Substring(0, 4) + "...";
+        }
+        betterVisualOption = "/" + optionParts[1] + "/" + optionParts[2];
+
+        return betterVisualOption;
     }
 }

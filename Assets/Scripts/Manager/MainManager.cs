@@ -11,6 +11,7 @@ public class MainManager : MonoBehaviour
     [SerializeField] public ErrorController errorController;
     [SerializeField] public ExperienceController experienceController;
     [SerializeField] public MediaController mediaController;
+    [SerializeField] public InputPersistanceController inputPersistanceController;
 
     public static MainManager instance;
     private void Start()
@@ -32,6 +33,7 @@ public class MainManager : MonoBehaviour
         mediaController.Initialize();
         localizationController.Initialize();
         experienceController.Initialize();
+        inputPersistanceController.Initialize();
         
     }
 

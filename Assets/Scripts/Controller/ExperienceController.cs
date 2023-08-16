@@ -34,7 +34,7 @@ public class ExperienceController : MonoBehaviour
 
     public static ExperienceController instance;
 
-    #region Data Operations
+    #region Initialize
     public void Initialize()
     {
         // Instance initializing

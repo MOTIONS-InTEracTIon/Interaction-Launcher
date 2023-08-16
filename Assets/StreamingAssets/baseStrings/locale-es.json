@@ -30,6 +30,7 @@
 
     "inputButton": "Configuración Input",
     "input_title": "Menu de Configuración de Input",
+    "input_mode": "Modo de mapeo: ",
     "input_hardware": "Dispositivo hardware a configurar: ",
     "input_error_nomapping": "No hay input_mapping en la experiencia, esta se añade antes de subir el Release.",
     "input_error_device": "Problema al conectar con el dispositivo, intentelo nuevamente.",
@@ -38,6 +39,7 @@
     "input_binder_type": "Tipo de Input: ",
     "input_binder_binding": "Asignación de Input: ",
     "input_binder_defaultdevice": "Ninguno",
+    "input_binder_defaultmode": "Ninguno",
     "input_binder_defaultbinding": "Predeterminado",
 
     "launchButton": "Iniciar",
