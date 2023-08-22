@@ -24,6 +24,7 @@ public class InputConfiguration : MonoBehaviour
 
     // Data
     private List<UIInputBinder> inputBinders;
+    private List<UIInputBinder> activeBinders;
     private UIInputBinder currentOpenedInputBinder;
     public List<string> deviceNames = new List<string>();
     public List<string> modeNames = new List<string>();
@@ -61,7 +62,8 @@ public class InputConfiguration : MonoBehaviour
         // Create list of Dropdown with input device names
         foreach (InputDevice device in devices)
         {
-            deviceNames.Add(device.name);
+            string[] deviceName = device.ToString().Split(":/");
+            deviceNames.Add(deviceName[0]);
         }
 
         devicesDropdown.FillDropdown(deviceNames, "Device");
@@ -109,6 +111,7 @@ public class InputConfiguration : MonoBehaviour
     // Turn on and off respective binders using mode
     public void UpdateBinders()
     {
+        activeBinders = new List<UIInputBinder>();
         // Restart devices
         devicesDropdown.dropdown.value = 0;
         devicesDropdown.dropdown.RefreshShownValue();
@@ -122,6 +125,7 @@ public class InputConfiguration : MonoBehaviour
             {
                 inputBinder.gameObject.SetActive(true);
                 enabledBinders++;
+                activeBinders.Add((inputBinder));
             }
             else
             {
@@ -148,18 +152,18 @@ public class InputConfiguration : MonoBehaviour
     // Handling scrollview
     private void OnScrollViewValueChanged(Vector2 scrollValue)
     {
+
         isScrolling = true;
         enableDropdowns = false;
 
         HideDropdowns();
-
         CancelInvoke("EnableDropdowns");
         Invoke("EnableDropdowns", 0.5f);
     }
 
     private void HideDropdowns()
     {
-        if (!(inputBinders != null && inputBinders.Count > 0))
+        if (!(activeBinders != null && activeBinders.Count > 0))
         {
             return;
         }
@@ -167,8 +171,13 @@ public class InputConfiguration : MonoBehaviour
         foreach (UIInputBinder inputBinder in inputBinders)
         {
             TMP_Dropdown dropdown = inputBinder.bindingLocaleOptionDropdown.dropdown;
-            dropdown.Hide();
+            if(dropdown.IsExpanded)
+            {
+                dropdown.Hide();
+            }
+            int storedValue = dropdown.value;
             dropdown.interactable = false;
+            dropdown.value = storedValue;
         }
 
         Invoke("EnableDropdowns", 0.5f);
@@ -176,7 +185,7 @@ public class InputConfiguration : MonoBehaviour
 
     private void EnableDropdowns()
     {
-        if (!(inputBinders != null && inputBinders.Count > 0))
+        if (!(activeBinders != null && activeBinders.Count > 0))
         {
             return;
         }
@@ -193,13 +202,13 @@ public class InputConfiguration : MonoBehaviour
 
         isScrolling = false;
     }
-    private void Update()
+    /*private void Update()
     {
         if (!isScrolling && enableDropdowns)
         {
             EnableDropdowns();
         }
-    }
+    }*/
     //
 
     // Persistance

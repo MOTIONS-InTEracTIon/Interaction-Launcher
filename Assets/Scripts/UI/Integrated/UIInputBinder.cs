@@ -108,11 +108,11 @@ public class UIInputBinder : MonoBehaviour
 
             if (controltype == inputType)
             {
-                inputPaths.Add(inputControl.layout + inputControl.path);
+                inputPaths.Add(inputConfiguration.devicesDropdown.originalOptions[inputConfiguration.devicesDropdown.dropdown.value - 1] + inputControl.path);
             }
             else if (inputType == "Button" && controltype == "Key")
             {
-                inputPaths.Add(inputControl.layout + inputControl.path);
+                inputPaths.Add(inputConfiguration.devicesDropdown.originalOptions[inputConfiguration.devicesDropdown.dropdown.value - 1] + inputControl.path);
             }
         }
 
@@ -136,12 +136,18 @@ public class UIInputBinder : MonoBehaviour
     public void UpdateBindSaveData()
     {
         // If a path was set, we need to know what it was
-        pathBinding = bindingLocaleOptionDropdown.originalOptions[bindingLocaleOptionDropdown.dropdown.value];
-        if(pathBinding == LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultbinding"))
+        int index = bindingLocaleOptionDropdown.dropdown.value - 1;
+        if (index == -1 && pathBinding == LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultbinding"))
         {
             pathBinding = "Default";
         }
-
+        else
+        {
+            pathBinding = bindingLocaleOptionDropdown.originalOptions[bindingLocaleOptionDropdown.dropdown.value - 1];
+            string[] pathParts = pathBinding.Split("/");
+            pathBinding = pathParts[0] + "/" + string.Join("/", pathParts, 2, pathParts.Length - 2);
+        }
+        
         inputConfiguration.UpdateInputPersistance(inputMap, inputName, inputType, inputModeName, pathBinding);
     }
 

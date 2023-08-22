@@ -63,6 +63,7 @@ public class LocaleOptionDropdown : MonoBehaviour
         List<TMP_Dropdown.OptionData> optionData = dropdown.options;
         // Create locale option
         optionData.Add(new TMP_Dropdown.OptionData(LocalizationController.instance.FetchString(groupKey,stringKey)));
+        originalOptions.Add(LocalizationController.instance.FetchString(groupKey, stringKey));
     }
 
     public void SetFirstOptionString(string firstOption)
@@ -71,7 +72,6 @@ public class LocaleOptionDropdown : MonoBehaviour
         List<TMP_Dropdown.OptionData> optionData = dropdown.options;
         // Set string as first option
         originalOptions.Insert(0, firstOption);
-        
         optionData.Insert(0, new TMP_Dropdown.OptionData(InputFormat(firstOption)));
     }
 
@@ -84,11 +84,11 @@ public class LocaleOptionDropdown : MonoBehaviour
 
         string betterVisualOption = input.Replace(@"\s{2,}", "");
         string[] optionParts = betterVisualOption.Split("/");
-        if (optionParts[1].Length > 4)
+        if (optionParts[0].Length > 4)
         {
-            optionParts[1] = optionParts[1].Substring(0, 4) + "...";
+            optionParts[0] = optionParts[0].Substring(0, 4) + "...";
         }
-        betterVisualOption = "/" + optionParts[1] + "/" + optionParts[2];
+        betterVisualOption = optionParts[0] + "/" + string.Join("/", optionParts, 2, optionParts.Length - 2);
 
         return betterVisualOption;
     }

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 
 // Save System, it lets the experiences InputConfiguration to load and save bindings so there is no need to reconfigure everything when you close the app
 public class InputPersistanceController : MonoBehaviour
@@ -34,15 +33,10 @@ public class InputPersistanceController : MonoBehaviour
     private void GetAllExperiencesBindingData()
     {
         // Load files
-        if (!LoadAllExperienceBindingData())
-        {
-            // Doesn't exist, save generated
-            GenerateAllExperiencesBindingData();
-            SaveAllExperiencesBindingData();
-        }
+        allExperiencesBindingData = GenerateAllExperiencesBindingData();
     }
 
-    private void GenerateAllExperiencesBindingData()
+    private List<ExperienceBindingData> GenerateAllExperiencesBindingData()
     {
         // Fill all experiences binding data
         List<ExperienceBindingData> allBindingData = new List<ExperienceBindingData>();
@@ -68,19 +62,31 @@ public class InputPersistanceController : MonoBehaviour
         // For each experience, get its input_mapping if it is already downloaded
         foreach(string folder in numberedFolders)
         {
-            InputActionBindingsData inputActionBindings = LoadExperienceBindingsData(int.Parse(folder));
-
-            if(inputActionBindings != null)
+            if(int.Parse(folder) == 0)
             {
-                ExperienceBindingData experienceBindingData = new ExperienceBindingData();
-                experienceBindingData.experienceId = int.Parse(folder);
-                experienceBindingData.experienceInputActionBindingsData = inputActionBindings;
-
-                allBindingData.Add(experienceBindingData);
+                continue;
             }
+
+            allBindingData.Add(GenerateExperienceBindingData(int.Parse(folder)));
         }
 
-        allExperiencesBindingData = allBindingData;
+        return allBindingData;
+    }
+
+    private ExperienceBindingData GenerateExperienceBindingData(int experienceId)
+    {
+        InputActionBindingsData inputActionBindings = LoadExperienceBindingsData(experienceId);
+
+        if (inputActionBindings != null)
+        {
+            ExperienceBindingData experienceBindingData = new ExperienceBindingData();
+            experienceBindingData.experienceId = experienceId;
+            experienceBindingData.experienceInputActionBindingsData = inputActionBindings;
+
+            return experienceBindingData;
+        }
+
+        return null;
     }
 
     #endregion
@@ -104,7 +110,6 @@ public class InputPersistanceController : MonoBehaviour
     {
         // Save persistance
         SetBindingsData(data, experienceId);
-        SaveAllExperiencesBindingData();
         // Send to experience
         SaveExperienceBindingsData(experienceId);
     }
@@ -122,38 +127,10 @@ public class InputPersistanceController : MonoBehaviour
     }
 
 
+
     #endregion
 
     #region Persistence
-    private bool LoadAllExperienceBindingData()
-    {
-        bool success = false;
-
-        string path = Application.persistentDataPath + "/Experience binding data.json";
-        if(File.Exists(path))
-        {
-            string json = File.ReadAllText(path);
-
-            allExperiencesBindingData = JsonUtility.FromJson<LauncherBindingSaveData>(json).allExperienceBindingData;
-            success = true;
-        }
-
-        return success;
-    }
-
-    private void SaveAllExperiencesBindingData()
-    {
-        bool success = false;
-        
-        LauncherBindingSaveData launcherBindingSaveData = new LauncherBindingSaveData();
-        launcherBindingSaveData.allExperienceBindingData = allExperiencesBindingData;
-
-        string json = JsonUtility.ToJson(launcherBindingSaveData);
-
-        File.WriteAllText(Application.persistentDataPath + "/Experience binding data.json", json);
-    }
-
-
     // Regarding experience input_mapping
     private InputActionBindingsData LoadExperienceBindingsData(int experienceId)
     {

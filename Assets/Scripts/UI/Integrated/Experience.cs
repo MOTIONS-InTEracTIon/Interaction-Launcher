@@ -158,8 +158,6 @@ public class Experience : MonoBehaviour
     }
     public IEnumerator OpenInputMenuCoroutine()
     {
-        SetLaunchButton(false);
-
         // Open menu
         if (isInputMenuOn)
         {
@@ -169,10 +167,7 @@ public class Experience : MonoBehaviour
         {
             yield return StartCoroutine(OpenMenu(true));
         }
-        // Wait for input menu to return a valid mapping
 
-        // HERE YOU ARE CONTINUE, FIND A VALID MAPPING WAY USING THE DEVICE SEARCH FUNCTION
-        
         isInputOperationRunning = false;
     }
 
@@ -401,6 +396,7 @@ public class Experience : MonoBehaviour
                     }
                     else
                     {
+                        SetLaunchButton(true);
                         if (actualVersion == releaseInfo.tag_name)
                         {
                             if (!(experienceId == 0))
