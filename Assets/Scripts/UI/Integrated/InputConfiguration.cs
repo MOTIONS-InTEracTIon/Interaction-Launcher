@@ -9,6 +9,8 @@ using TMPro;
 using System;
 using System.IO;
 using JetBrains.Annotations;
+using static UnityEngine.InputSystem.InputBindingCompositeContext;
+using Unity.VisualScripting;
 
 public class InputConfiguration : MonoBehaviour
 {
@@ -34,10 +36,17 @@ public class InputConfiguration : MonoBehaviour
 
     // Settings
     private int id;
+    public bool isOpen;
     public bool initialized;
 
     // Events
     public static event Action OnInputDeviceSelected;
+
+    private void OnDisable()
+    {
+        isOpen = false;
+        this.gameObject.SetActive(false);
+    }
 
     #region Initialize
     public void Initialize(int experienceId)
@@ -78,7 +87,7 @@ public class InputConfiguration : MonoBehaviour
             return;
         }
         // Get input_mapping file
-        experienceAllInputActionModeData = InputPersistanceController.instance.GetExperienceInputMapping(id).allInputActionModeData;
+        experienceAllInputActionModeData = InputPersistanceController.instance.GetExperienceInputMapping(id).allInputActionsModeData;
 
         if (experienceAllInputActionModeData == null)
         {
@@ -93,9 +102,12 @@ public class InputConfiguration : MonoBehaviour
 
             foreach (InputActionData inputAction in modeData.inputActions)
             {
-                UIInputBinder inputBinder = Instantiate(inputBinderPrefab, inputBinderContainer.transform).GetComponent<UIInputBinder>();
-                inputBinder.Initialize(inputAction.actionMap, inputAction.actionName, inputAction.controlType, inputModeName, inputAction.resultPathBinding, this);
-                inputBinders.Add(inputBinder);
+                foreach (InputBindingData inputBinding in inputAction.inputBindings)
+                {
+                    UIInputBinder inputBinder = Instantiate(inputBinderPrefab, inputBinderContainer.transform).GetComponent<UIInputBinder>();
+                    inputBinder.Initialize(inputAction, inputBinding, inputModeName, this);
+                    inputBinders.Add(inputBinder);
+                }
             }
         }
 
@@ -175,9 +187,10 @@ public class InputConfiguration : MonoBehaviour
             {
                 dropdown.Hide();
             }
-            int storedValue = dropdown.value;
+
             dropdown.interactable = false;
-            dropdown.value = storedValue;
+            inputBinder.bindingLocaleOptionDropdown.SetFirstOptionString(inputBinder.pathBinding);
+            
         }
 
         Invoke("EnableDropdowns", 0.5f);
@@ -196,41 +209,52 @@ public class InputConfiguration : MonoBehaviour
             {
                 TMP_Dropdown dropdown = inputBinder.bindingLocaleOptionDropdown.dropdown;
                 dropdown.interactable = true;
+                inputBinder.bindingLocaleOptionDropdown.SetFirstOptionString(inputBinder.pathBinding);
             }
 
         }
 
         isScrolling = false;
     }
-    /*private void Update()
+    private void Update()
     {
         if (!isScrolling && enableDropdowns)
         {
             EnableDropdowns();
         }
-    }*/
+    }
     //
 
     // Persistance
-    public void UpdateInputPersistance(string map, string name, string type, string modeName, string pathBinding)
+    public void UpdateInputPersistance(InputActionData inputAction, InputBindingData inputBinding, string mode)
     {
         // Modify the data
-        SetBinding(map, name, type, modeName, pathBinding);
+        SetBinding(inputAction, inputBinding, mode);
         // Save and send the data to experience
         InputPersistanceController.instance.UpdateAllExperienceBindings(experienceAllInputActionModeData, id);
     }
 
-    private void SetBinding(string map, string name, string type, string modeName, string pathBinding)
+    private void SetBinding(InputActionData inputAction, InputBindingData inputBinding, string mode)
     {
-        foreach(InputActionModeData modeData in experienceAllInputActionModeData)
+        foreach (InputActionModeData modeData in experienceAllInputActionModeData)
         {
-            if(modeData.modeName == modeName)
+            if (modeData.modeName == mode)
             {
-                foreach(InputActionData inputActionData in modeData.inputActions)
+                foreach (InputActionData inputActionData in modeData.inputActions)
                 {
-                    if(inputActionData.actionMap == map && inputActionData.actionName == name && inputActionData.controlType == type)
+                    if (inputActionData.actionMap == inputAction.actionMap &&
+                        inputActionData.actionName == inputAction.actionName &&
+                        inputActionData.controlType == inputAction.controlType)
                     {
-                        inputActionData.resultPathBinding = pathBinding;
+                        foreach (InputBindingData inputBindingData in inputActionData.inputBindings)
+                        {
+                            if(inputBindingData.bindingName == inputBinding.bindingName &&
+                               inputBindingData.isComposite == inputBinding.isComposite &&
+                               inputBindingData.isPartOfComposite == inputBinding.isPartOfComposite)
+                            {
+                                inputBindingData.path = inputBinding.path;
+                            }
+                        }
                     }
                 }
             }

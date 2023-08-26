@@ -3,6 +3,12 @@
     "experienceList": "Experiences",
     "status": "Status: ",
 
+    "settings_error": "There is no settings.json, creating a default one to configure",
+    "experience_error": "Failed to setup experience, check settings.json in the root folder of the app",
+
+    "data": "Fetching data...",
+    "data_error": "Couldn't fetch data",
+    "data_done": "Data fetched.",
     "currentVersion": "Current version: ",
     "latestVersion": "Latest version: ",
     "info": "Fetching version...",
@@ -17,7 +23,6 @@
     "update_done": "Successfully updated, press Launch to start",
     "updatemain_done": "Package downloaded to .../Data/StreamingAssets/0/download/",
 
-    "credentials_error": "Credentials not set",
     "locale_error1": "One or more experiences have no  ",
     "locale_error2" : " locale file",
 
@@ -41,6 +46,8 @@
     "input_binder_defaultdevice": "None",
     "input_binder_defaultmode": "None",
     "input_binder_defaultbinding": "Default",
+
+    "about_title": "About",
     
     "launchButton": "Launch",
     "launchButton_running": "Running...",

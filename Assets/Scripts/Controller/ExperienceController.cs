@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
 using UnityEngine.UI;
@@ -14,11 +15,15 @@ public class ExperienceController : MonoBehaviour
 {
     // Prefabs
     [SerializeField] private GameObject uiExperiencePrefab;
+    [SerializeField] private GameObject experienceCardPrefab;
     // Components
     [SerializeField] private GameObject experienceCardContainer;
     [SerializeField] private GameObject experienceScrollviewContent;
 
     // Data
+    public List<ExperienceData> allExperiencesData;
+
+    public string filePath;
     [SerializeField] private List<Experience> experiences;
     [SerializeField] private List<Toggle> experienceToggles;
 
@@ -47,7 +52,12 @@ public class ExperienceController : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Experience fetching
+        // Create JSON
+        filePath = Path.GetDirectoryName(Application.dataPath) + "/settings.json";
+
+        // Load Experiences Settings
+        LoadSettingsFile();
+        // Fetch Experiences
         StartCoroutine(InitializeExperiences());
     }
 
@@ -60,25 +70,21 @@ public class ExperienceController : MonoBehaviour
         // Fill experienceToggle list with toggles
         GetExperienceToggles();
         // Initialize component
-        yield return StartCoroutine(experiences[0].Initialize());
+        yield return null;
+        //yield return StartCoroutine(experiences[0].Initialize(0));
     }
 
     private void GetExperiences()
     {
-        for (int i = 0; i < experienceCardContainer.gameObject.transform.childCount; i++) 
+        for (int i = 0; i < allExperiencesData.Count; i++)
         {
-            Experience experienceCard = experienceCardContainer.transform.GetChild(i).gameObject.GetComponent<Experience>();
-            experienceCard.experienceId = i;
-            LocaleText[] localeTexts = experienceCard.GetComponentsInChildren<LocaleText>();
-            foreach (LocaleText text in localeTexts)
-            {
-                if(text.groupKey != "baseStrings")
-                {
-                    text.groupKey = i.ToString();
-                }
-            }
-            experiences.Add(experienceCard);
+            ExperienceData newExperienceData = allExperiencesData[i];
 
+            Experience newExperience = Instantiate(experienceCardPrefab, experienceCardContainer.transform).GetComponent<Experience>();
+
+            newExperience.Initialize(i, newExperienceData.resultFolders, newExperienceData.githubOwner, newExperienceData.githubRepo, newExperienceData.imageUrls);
+
+            experiences.Add(newExperience);
         }
     }
 
@@ -115,7 +121,7 @@ public class ExperienceController : MonoBehaviour
         experiences[componentId].gameObject.SetActive(true);
         actualExperienceCardId = componentId;
         // Initialize component
-        yield return StartCoroutine(experiences[componentId].Initialize());
+        // VAS A INICIALIZARLO EN OTRO LADO yield return StartCoroutine(experiences[componentId].Initialize());
         // FadeIn new component
         FadeUI newComponentFader = experiences[componentId].GetComponent<FadeUI>();
         yield return StartCoroutine(newComponentFader.FadeIn());
@@ -186,4 +192,73 @@ public class ExperienceController : MonoBehaviour
     }
 
     #endregion
+
+    #region Persistence
+    private void LoadSettingsFile()
+    {
+        if (!File.Exists(filePath))
+        {
+            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "settings_error"), 5);
+
+            ExperiencesData baseExperiencesData = new ExperiencesData();
+
+            baseExperiencesData.allExperiencesData = new List<ExperienceData>();
+
+            ExperienceData baseExperienceData = new ExperienceData();
+            baseExperienceData.name = "Interaction Launcher";
+            baseExperienceData.resultFolders = null;
+            baseExperienceData.githubOwner = "MoriyarnnOrg"; // Change this when moving to Organization
+            baseExperienceData.githubRepo = "Interaction-Launcher";
+            baseExperienceData.imageUrls = null;
+
+            baseExperiencesData.allExperiencesData.Add(baseExperienceData);
+
+            allExperiencesData = baseExperiencesData.allExperiencesData;
+            SaveSettingsFile();
+            
+            return ;
+        }
+
+        string json = File.ReadAllText(filePath);
+
+        // Loads all experience data
+        allExperiencesData = JsonUtility.FromJson<ExperiencesData>(json).allExperiencesData;
+
+    }
+
+    private void SaveSettingsFile()
+    {
+        ExperiencesData experiencesData = new ExperiencesData();
+
+        experiencesData.allExperiencesData = allExperiencesData;
+
+        string json = JsonUtility.ToJson(experiencesData);
+
+        File.WriteAllText(filePath, json);
+    }
+    #endregion
+
+
 }
+
+
+#region Persistence classes
+
+// Regarding experience input_mapping
+[Serializable]
+public class ExperiencesData
+{
+    public List<ExperienceData> allExperiencesData;
+}
+
+[Serializable]
+public class ExperienceData
+{
+    public string name;
+    public List<string> resultFolders;
+    public string githubOwner;
+    public string githubRepo;
+    public List<string> imageUrls;
+}
+
+#endregion

@@ -18,24 +18,21 @@ public class LocaleOptionDropdown : MonoBehaviour
     // Data
     public List<string> originalOptions;
 
-    private void OnEnable()
-    {
-        if(groupKey != null && stringKey != null)
-        {
-            SetFirstOptionLocale();
-        }
-    }
-
     public void FillDropdown(List<string> options, string contentType)
     {
         dropdown.interactable = false;
 
         dropdown.options.Clear();
+        originalOptions.Clear();
 
         SetFirstOptionLocale();
 
         // Get current options
-        originalOptions = options;
+        foreach (string option in options)
+        {
+            originalOptions.Add(option);
+        }
+
         List<TMP_Dropdown.OptionData> optionData = dropdown.options;
         // Add options
         foreach (string option in options)
@@ -69,10 +66,8 @@ public class LocaleOptionDropdown : MonoBehaviour
     public void SetFirstOptionString(string firstOption)
     {
         // Get current options
-        List<TMP_Dropdown.OptionData> optionData = dropdown.options;
-        // Set string as first option
-        originalOptions.Insert(0, firstOption);
-        optionData.Insert(0, new TMP_Dropdown.OptionData(InputFormat(firstOption)));
+        dropdown.captionText.text = InputFormat(firstOption);
+
     }
 
     private string InputFormat(string input)
@@ -88,7 +83,7 @@ public class LocaleOptionDropdown : MonoBehaviour
         {
             optionParts[0] = optionParts[0].Substring(0, 4) + "...";
         }
-        betterVisualOption = optionParts[0] + "/" + string.Join("/", optionParts, 2, optionParts.Length - 2);
+        betterVisualOption = optionParts[0] + "/" + string.Join("/", optionParts, 1, optionParts.Length - 1);
 
         return betterVisualOption;
     }

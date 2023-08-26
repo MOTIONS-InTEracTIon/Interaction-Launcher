@@ -5,11 +5,11 @@ using System.IO;
 using Unity.VisualScripting;
 using UnityEngine;
 
-// Save System, it lets the experiences InputConfiguration to load and save bindings so there is no need to reconfigure everything when you close the app
+// It saves and loads the different input files that come from the different experiences
 public class InputPersistanceController : MonoBehaviour
 {
     // Data
-    public List<ExperienceBindingData> allExperiencesBindingData;
+    public List<ExperienceInputActionData> allExperiencesInputData;
 
     public static InputPersistanceController instance;
 
@@ -26,20 +26,20 @@ public class InputPersistanceController : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-        GetAllExperiencesBindingData();
+        GetAllExperiencesInputActionData();
     }
 
-    // Loads all binding data if it exists, it generates it using experiences input_mapping if it doesn't
-    private void GetAllExperiencesBindingData()
+    // Loads all input data if it exists, it generates it using experiences input_mapping if it doesn't
+    private void GetAllExperiencesInputActionData()
     {
         // Load files
-        allExperiencesBindingData = GenerateAllExperiencesBindingData();
+        allExperiencesInputData = GenerateAllExperiencesInputActionData();
     }
 
-    private List<ExperienceBindingData> GenerateAllExperiencesBindingData()
+    private List<ExperienceInputActionData> GenerateAllExperiencesInputActionData()
     {
         // Fill all experiences binding data
-        List<ExperienceBindingData> allBindingData = new List<ExperienceBindingData>();
+        List<ExperienceInputActionData> allExperienceInputData = new List<ExperienceInputActionData>();
 
         // Check number of experiences
         
@@ -67,23 +67,23 @@ public class InputPersistanceController : MonoBehaviour
                 continue;
             }
 
-            allBindingData.Add(GenerateExperienceBindingData(int.Parse(folder)));
+            allExperienceInputData.Add(GenerateExperienceInputActionData(int.Parse(folder)));
         }
 
-        return allBindingData;
+        return allExperienceInputData;
     }
 
-    private ExperienceBindingData GenerateExperienceBindingData(int experienceId)
+    private ExperienceInputActionData GenerateExperienceInputActionData(int experienceId)
     {
-        InputActionBindingsData inputActionBindings = LoadExperienceBindingsData(experienceId);
+        InputActionsData inputActions = LoadExperienceInputActionsData(experienceId);
 
-        if (inputActionBindings != null)
+        if (inputActions != null)
         {
-            ExperienceBindingData experienceBindingData = new ExperienceBindingData();
-            experienceBindingData.experienceId = experienceId;
-            experienceBindingData.experienceInputActionBindingsData = inputActionBindings;
+            ExperienceInputActionData experienceInputActionData = new ExperienceInputActionData();
+            experienceInputActionData.experienceId = experienceId;
+            experienceInputActionData.experienceInputActionsData = inputActions;
 
-            return experienceBindingData;
+            return experienceInputActionData;
         }
 
         return null;
@@ -93,13 +93,13 @@ public class InputPersistanceController : MonoBehaviour
 
     #region Data Operations
 
-    public InputActionBindingsData GetExperienceInputMapping(int experienceId)
+    public InputActionsData GetExperienceInputMapping(int experienceId)
     {
-        foreach (ExperienceBindingData bindingData in allExperiencesBindingData)
+        foreach (ExperienceInputActionData experienceInputData in allExperiencesInputData)
         {
-            if(bindingData.experienceId == experienceId)
+            if(experienceInputData.experienceId == experienceId)
             {
-                return bindingData.experienceInputActionBindingsData;
+                return experienceInputData.experienceInputActionsData;
             }
         }
 
@@ -109,19 +109,19 @@ public class InputPersistanceController : MonoBehaviour
     public void UpdateAllExperienceBindings(List<InputActionModeData> data, int experienceId)
     {
         // Save persistance
-        SetBindingsData(data, experienceId);
+        SetExperienceInputActionData(data, experienceId);
         // Send to experience
-        SaveExperienceBindingsData(experienceId);
+        SaveExperienceInputActionData(experienceId);
     }
 
-    private void SetBindingsData(List<InputActionModeData> data, int experienceId)
+    private void SetExperienceInputActionData(List<InputActionModeData> data, int experienceId)
     {   
-        // Inserts new mode data assigned to an experienceId in the binding data attribute
-        foreach(ExperienceBindingData experienceBindingData in allExperiencesBindingData)
+        // Inserts new mode data assigned to an experienceId in the input action data attribute
+        foreach(ExperienceInputActionData experienceInputActionData in allExperiencesInputData)
         {
-            if(experienceBindingData.experienceId == experienceId)
+            if(experienceInputActionData.experienceId == experienceId)
             {
-                experienceBindingData.experienceInputActionBindingsData.allInputActionModeData = data;
+                experienceInputActionData.experienceInputActionsData.allInputActionsModeData = data;
             }
         }
     }
@@ -132,9 +132,9 @@ public class InputPersistanceController : MonoBehaviour
 
     #region Persistence
     // Regarding experience input_mapping
-    private InputActionBindingsData LoadExperienceBindingsData(int experienceId)
+    private InputActionsData LoadExperienceInputActionsData(int experienceId)
     {
-        InputActionBindingsData experienceBindingData = new InputActionBindingsData();
+        InputActionsData experienceBindingData = new InputActionsData();
 
         string path = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build/input_mapping.json";
 
@@ -147,14 +147,14 @@ public class InputPersistanceController : MonoBehaviour
         string json = File.ReadAllText(path);
 
         // Loads all binding data
-        experienceBindingData = JsonUtility.FromJson<InputActionBindingsData>(json);
+        experienceBindingData = JsonUtility.FromJson<InputActionsData>(json);
 
         return experienceBindingData;
     }
 
-    private void SaveExperienceBindingsData(int experienceId)
+    private void SaveExperienceInputActionData(int experienceId)
     {
-        InputActionBindingsData experienceBindingsData = new InputActionBindingsData();
+        InputActionsData experienceBindingsData = new InputActionsData();
 
         string path = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build/input_mapping.json";
 
@@ -179,9 +179,9 @@ public class InputPersistanceController : MonoBehaviour
 
 // Regarding experience input_mapping
 [Serializable]
-public class InputActionBindingsData
+public class InputActionsData
 {
-    public List<InputActionModeData> allInputActionModeData;
+    public List<InputActionModeData> allInputActionsModeData;
 }
 
 [Serializable]
@@ -194,26 +194,34 @@ public class InputActionModeData
 [Serializable]
 public class InputActionData
 {
-    public string actionMap;
     public string actionName;
-    public string actionType;
+    public string actionMap;
     public string controlType;
-    // Comes clean, and it is meant to be overriden using the launcher
-    public string resultPathBinding;
+    public List<InputBindingData> inputBindings;
+}
+
+[Serializable]
+public class InputBindingData
+{
+    public string bindingName;
+    public bool isComposite;
+    public bool isPartOfComposite;
+    // Comes in "Default", it is filled and sent to experience
+    public string path;
 }
 
 // Regarding launcher binding data
 [Serializable]
-public class LauncherBindingSaveData
+public class LauncherInputActionSaveData
 {
-    public List<ExperienceBindingData> allExperienceBindingData;
+    public List<ExperienceInputActionData> allExperiencesInputActionData;
 }
 
 [Serializable]
-public class ExperienceBindingData
+public class ExperienceInputActionData
 {
     public int experienceId;
-    public InputActionBindingsData experienceInputActionBindingsData;
+    public InputActionsData experienceInputActionsData;
 }
 
 
