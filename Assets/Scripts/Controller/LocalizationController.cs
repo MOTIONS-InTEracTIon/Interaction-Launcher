@@ -47,24 +47,17 @@ public class LocalizationController : MonoBehaviour
 
         // Load all possible locales
         locales = LoadLocales();
-        // Apply locale to language dropdown
-        ApplyLocaleDropdown();
 
         // Set default text
         ApplyLocale(defaultLocale);
     }
 
-    public void SetLocale(int localeIndex)
-    {
-        // Set locale with string
-        ApplyLocale(languageDropdown.options[localeIndex].text);
-    }
     // Applies locale to every LocaleComponent
     public void ApplyLocale(string locale)
     {
         currentLocale = locale;
         // Get locale strings from file
-        LoadLocaleStrings(currentLocale);
+        LoadBaseStrings(currentLocale);
         // Apply locale to textboxes
         OnLanguageChange?.Invoke();
     }
@@ -75,16 +68,26 @@ public class LocalizationController : MonoBehaviour
         OnLanguageChange?.Invoke();
     }
 
+
+
+    #endregion
+
+    #region Data Operations
+
     // Aplies locale to dropdown
-    public void ApplyLocaleDropdown()
+    public void ApplyLocaleDropdown(TMP_Dropdown dropdown)
     {
+        languageDropdown = dropdown;
+        languageDropdown.onValueChanged.AddListener(UpdateLocale);
+
+        // Connect 
         languageDropdown.ClearOptions();
         int currentOptionIndex = 0;
 
         for (int i = 0; i < locales.Count; i++)
         {
-            if(defaultLocale == locales[i]) 
-            { 
+            if (defaultLocale == locales[i])
+            {
                 currentOptionIndex = i;
             }
         }
@@ -93,11 +96,6 @@ public class LocalizationController : MonoBehaviour
         languageDropdown.value = currentOptionIndex;
         languageDropdown.RefreshShownValue();
     }
-
-    #endregion
-
-    #region Data Operations
-
     // Fetches string from currentLocaleStrings
     public string FetchString(string groupKey, string stringKey)
     {
@@ -124,6 +122,17 @@ public class LocalizationController : MonoBehaviour
         return "String not found";
     }
 
+    public void UpdateLocale(int localeIndex)
+    {
+        // Dropdown changed, this means the baseStrings and the experience string must be fetched again
+        currentLocale = languageDropdown.options[localeIndex].text;
+        // Get locale strings from file
+        LoadBaseStrings(currentLocale);
+        LoadExperienceStrings(ExperienceController.instance.actualExperienceCardId, true);
+        // Apply locale to textboxes
+        OnLanguageChange?.Invoke();
+    }
+
     #endregion
 
     #region Persistence
@@ -131,6 +140,9 @@ public class LocalizationController : MonoBehaviour
     // Locale files are part of the application streamingAssets and they will only be loaded on start and when using the language dropdown
     public List<string> LoadLocales()
     {
+        baseStrings = new Dictionary<string, string>();
+        experienceStrings = new List<Dictionary<string, string>>();
+
         string path = Application.streamingAssetsPath + "/baseStrings";
         List<string> locales = new List<string>();
 
@@ -149,10 +161,9 @@ public class LocalizationController : MonoBehaviour
         return locales;
     }
 
-    public void LoadLocaleStrings(string localeName)
+    public void LoadBaseStrings(string localeName)
     {
         // Load from json base Strings
-        baseStrings = new Dictionary<string, string>();
         string path = Application.streamingAssetsPath + "/baseStrings/locale-" + localeName + ".json";
         if (File.Exists(path))
         {
@@ -164,32 +175,26 @@ public class LocalizationController : MonoBehaviour
             ErrorController.instance.ShowError("baseStrings not found.", 5);
             return;
         }
+    }
 
+    public void LoadExperienceStrings(int experienceId, bool update)
+    {
         // Load from json experience Strings
-        experienceStrings = new List<Dictionary<string, string>>();
-        path = Application.streamingAssetsPath;
+        Dictionary<string, string> experienceStrings = new Dictionary<string, string>();
 
-        int numberOfExperiences = Directory.GetDirectories(path).Length - 1;
+        string path = Application.streamingAssetsPath + "/" + experienceId + "/locale-" + currentLocale + ".json";
 
-        // For each experience folder named "number"
-        for (int i = 0; i < numberOfExperiences; i++)
+        if (File.Exists(path))
         {
-            path = Application.streamingAssetsPath + "/" + i.ToString() + "/locale-" + localeName + ".json";
-
-            if (File.Exists(path))
-            {
-                string json = File.ReadAllText(path);
-                Dictionary<string, string> experienceString = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-                experienceStrings.Add(experienceString);
-            }
-            else
-            {
-                ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "locale_error1") + localeName + LocalizationController.instance.FetchString("baseStrings", "locale_error2"), 5);
-                return;
-            }
+            string json = File.ReadAllText(path);
+            experienceStrings = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            ListUtils.InsertAtOrFill(this.experienceStrings, experienceId, experienceStrings);
         }
-
-
+        else
+        {
+            ErrorController.instance.ShowError(FetchString("baseStrings", "experienceStrings_error"), 5);
+            return;
+        }
     }
 
         #endregion

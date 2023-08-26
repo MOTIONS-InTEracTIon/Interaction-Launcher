@@ -1,1 +1,42 @@
-{"allExperiencesData":[{"name":"Interaction Launcher","resultFolders":[],"githubOwner":"MoriyarnnOrg","githubRepo":"Interaction-Launcher","imageUrls":[]}]}
+{
+    "allExperiencesData": [
+        {
+            "name": "Interaction Launcher",
+            "executableName": "",
+            "resultFolders": [],
+            "githubOwner": "MoriyarnnOrg",
+            "githubRepo": "Interaction-Launcher",
+            "imageUrls": []
+        },
+        {
+            "name": "VoRTIcES 2.0",
+            "executableName": "VORTICES-2.exe",
+            "resultFolders": [
+                "Results"
+            ],
+            "githubOwner": "MOTIONS-InTEracTIon",
+            "githubRepo": "VORTICES-2",
+            "imageUrls": [
+                "https://i.imgur.com/dirmuD9.png",
+                "https://i.imgur.com/1hev8Sk.png",
+                "https://i.imgur.com/1hev8Sk.png",
+                "https://i.imgur.com/LRVZzGW.mp4"
+            ]
+        },
+        {
+            "name": "VoRTIcES Copia",
+            "executableName": "VORTICES-2.exe",
+            "resultFolders": [
+                "Results"
+            ],
+            "githubOwner": "MOTIONS-InTEracTIon",
+            "githubRepo": "VORTICES-2",
+            "imageUrls": [
+                "https://i.imgur.com/dirmuD9.png",
+                "https://i.imgur.com/1hev8Sk.png",
+                "https://i.imgur.com/1hev8Sk.png",
+                "https://i.imgur.com/LRVZzGW.mp4"
+            ]
+        }
+    ]
+}

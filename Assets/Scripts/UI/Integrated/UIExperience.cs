@@ -19,15 +19,11 @@ namespace Vortices
 
 
         #region Data Operation
-        public void Init(int id)
+        public void Init(int id, string name)
         {
-            // Fetch strings
-            nameText.groupKey = id.ToString();
-            nameText.stringKey = "title";
-            nameText.UpdateText();
-            experienceName = nameText.textBox.text;
+            experienceName = name;
+            nameText.textBox.text = name;
 
-            nameText.SetText(experienceName);
             experienceId = id;
             // Subscribe to event with id
             selectToggle.onValueChanged.AddListener(delegate { ExperienceController.instance.ChangeCardToggle(selectToggle); });

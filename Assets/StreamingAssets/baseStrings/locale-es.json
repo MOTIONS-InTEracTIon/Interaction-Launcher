@@ -2,14 +2,23 @@
     "language": "Idioma: ",
     "experienceList": "Experiencias",
     "status": "Estado: ",
+    "loading": "Cargando...",
 
+    "settings_error": "No hay settings.json, creando uno para configurar...",
+    "experience_error": "Falló la inicialización de la experiencia, pudo haber un error en settings.json o la API de Github no responde, intentelo más tarde.",
+
+    "experienceStrings_error": "No se encontraron los strings de la experiencia con ID: ",
+
+    "data": "Buscando data...",
+    "data_error": "No se pudo completar la busqueda ",
+    "data_done": "Data encontrada.",
     "currentVersion": "Versión actual: ",
     "latestVersion": "Última versión: ",
     "info": "Buscando información..",
-    "info_error": "No se pudo completar la busqueda: ",
+    "info_error": "No se pudo completar la busqueda ",
     "info_done": "Información encontrada.",
     "download": "Descargando...",
-    "download_error": "No se pudo descargar el archivo: ",
+    "download_error": "No se pudo descargar el archivo ",
     "download_done": "Archivos descargados, presionar Iniciar para abrir.",
     "install": "Instalando...",
     "install_error": "Error de descompresion, debe ser .zip y no puede estar en ejecución.",
@@ -17,7 +26,6 @@
     "update_done": "Actualizado correctamente",
     "updatemain_done": "Descargada ultima versión en Data/StreamingAssets/0/build.",
 
-    "credentials_error": "Credenciales no configuradas",
     "locale_error1": "Una o más experiencias no tienen archivo de idioma ",
     "locale_error2" : "",
 
@@ -41,6 +49,8 @@
     "input_binder_defaultdevice": "Ninguno",
     "input_binder_defaultmode": "Ninguno",
     "input_binder_defaultbinding": "Predeterminado",
+
+    "about_title": "Acerca",
 
     "launchButton": "Iniciar",
     "launchButton_running": "En ejecución...",

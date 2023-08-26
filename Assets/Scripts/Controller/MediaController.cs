@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
@@ -10,6 +11,9 @@ public class MediaController : MonoBehaviour
     // Prefabs
     public GameObject imagePrefab; 
     public GameObject videoPrefab;
+
+    // Data
+    public List<GameObject> media;
 
     public static MediaController instance;
 
@@ -31,22 +35,19 @@ public class MediaController : MonoBehaviour
 
     #region Persistence
 
-    public List<GameObject> FetchMedia(int experienceId)
+    public IEnumerator FetchMedia(int experienceId, List<string> imagePaths)
     {
-        List<GameObject> media = new List<GameObject>();
-        string path = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/media";
+        media = new List<GameObject>();
 
-        // Get all files
-        string[] files = Directory.GetFiles(path);
         // Add them to media if they are the correct extension
-        foreach (string file in files)
+        foreach (string file in imagePaths)
         {
             string extension = Path.GetExtension(file).ToLower();
 
             if (extension == ".png" || extension == ".jpg" || extension == ".jpeg")
             {
                 // Load image
-                media.Add(LoadImage(file));
+                yield return StartCoroutine(LoadImage(file));
             }
             else if (extension == ".mp4" || extension == ".mov")
             {
@@ -54,25 +55,29 @@ public class MediaController : MonoBehaviour
                 media.Add(LoadVideo(file));
             }
         }
-
-        return media;
     }
 
-    private GameObject LoadImage(string imagePath)
+    private IEnumerator LoadImage(string imagePath)
     {
-        // Load image
-        byte[] imageData = System.IO.File.ReadAllBytes(imagePath);
-        // Create texture
-        Texture2D texture = new Texture2D(2, 2);
-        texture.LoadImage(imageData);
-        // Get prefab and apply texture
-        GameObject mediaImage = Instantiate(imagePrefab);
-        RawImage rawImage = mediaImage.transform.GetComponentInChildren<RawImage>();
-        rawImage.texture = texture;
+        UnityWebRequest www = UnityWebRequestTexture.GetTexture(imagePath);
 
-        ResizeParentRectTransform(rawImage, texture.width, texture.height);
+        yield return www.SendWebRequest();
 
-        return mediaImage;
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            Texture2D texture = DownloadHandlerTexture.GetContent(www);
+            GameObject mediaImage = Instantiate(imagePrefab);
+            RawImage rawImage = mediaImage.GetComponentInChildren<RawImage>();
+            rawImage.texture = texture;
+
+            ResizeParentRectTransform(rawImage, texture.width, texture.height);
+
+            media.Add(mediaImage);
+        }
+        else
+        {
+            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "media_error") + www.error, 5);
+        }
     }
 
     void ResizeParentRectTransform(RawImage rawImage, int imageWidth, int imageHeight)

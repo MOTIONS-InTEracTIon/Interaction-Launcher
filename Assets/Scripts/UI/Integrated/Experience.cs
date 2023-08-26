@@ -1,4 +1,5 @@
 using ICSharpCode.SharpZipLib.Zip;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using Vortices;
 
 // Configures a experience fetched by the Experience controller allowing downloading, updating, button mapping and launching among other features
 // NOTE: Will work only with public repositories, no authentication keys required
@@ -23,7 +25,9 @@ public class Experience : MonoBehaviour
     [SerializeField] public LocaleText experienceDescription;
     [SerializeField] public CarouselScrollview mediaCarousel; // Integrated
     [SerializeField] public InputConfiguration inputConfigurationMenu; // Integrated
-    [SerializeField] public Button inputConfigurationButton;
+    [SerializeField] public LocaleTextButton inputConfigurationButton;
+    [SerializeField] public LocaleTextButton launchButton;
+    [SerializeField] public GameObject languageDropdown;
 
 
     [SerializeField] public TextMeshProUGUI status; // Info Components 
@@ -32,7 +36,6 @@ public class Experience : MonoBehaviour
     [SerializeField] public TextMeshProUGUI currentVersionText;
     [SerializeField] public TextMeshProUGUI latestVersionText;
     [SerializeField] public ProgressBar downloadProgressBar;
-    [SerializeField] public LocaleTextButton launchButton;
     [SerializeField] public Button downloadButton;
 
     // Data
@@ -54,7 +57,7 @@ public class Experience : MonoBehaviour
     private string githubRepo;
     private List<string> imageUrls;
 
-    private bool initialized;
+    public bool initialized;
 
     // Coroutine
     private bool isApiOperationRunning;
@@ -62,16 +65,18 @@ public class Experience : MonoBehaviour
     private bool isInputOperationRunning;
 
     #region Initialize
-    public IEnumerator Initialize(int experienceId, List<string> resultFolders, string githubOwner, string githubRepo, List<string> imageUrls)
+    public IEnumerator Initialize(int experienceId, ExperienceData experienceData)
     {
+        ErrorController.instance.ShowLoading(true);
         // Clear information
         ClearData();
 
         // Set up data THIS WILL CHANGE TO A JSON THAT STORES DATA ABOUT THE APP, LIKE THE EXECUTABLE PATH AND NAME
-        yield return StartCoroutine(SetExperienceData(experienceId, resultFolders, githubOwner, githubRepo, imageUrls));
+        yield return StartCoroutine(SetExperienceData(experienceId, experienceData.executableName, experienceData.resultFolders, experienceData.githubOwner, experienceData.githubRepo, experienceData.imageUrls));
         // Get version
         yield return StartCoroutine(GetLatestVersion());
 
+        ErrorController.instance.ShowLoading(false);
         initialized = true;
     }
 
@@ -90,22 +95,24 @@ public class Experience : MonoBehaviour
         SetInputButton(false);
     }
 
-    private IEnumerator SetExperienceData(int experienceId, List<string> resultFolders, string githubOwner, string githubRepo, List<string> imageUrls)
+    private IEnumerator SetExperienceData(int experienceId, string executableName, List<string> resultFolders, string githubOwner, string githubRepo, List<string> imageUrls)
     {
-        if (experienceId <= 0 || resultFolders == null || githubOwner == null || githubRepo == null)
+        if (experienceId < 0 || resultFolders == null || githubOwner == null || githubRepo == null)
         {
             ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "experience_error"), 5);
             yield return null;
         }
 
         // Set up basic info
-        SetupExperienceInfo(experienceId, resultFolders, githubOwner, githubRepo);
+        SetupExperienceInfo(experienceId, executableName, resultFolders, githubOwner, githubRepo);
         // Set up text
-        SetupExperienceStrings();
+        yield return StartCoroutine(SetupExperienceStrings());
+        // Set up conditional components
+        SetupExperienceComponents();
         // Set up bundles?
 
         // Set up images THIS WILL CHANGE TO A JSON THAT STORES DATA ABOUT THE APP, LIKE A LIST OF MEDIA FILES
-        if (mediaCarousel != null)
+        if (mediaCarousel.gameObject.activeInHierarchy)
         {
             if (imageUrls == null)
             {
@@ -114,26 +121,56 @@ public class Experience : MonoBehaviour
 
             mediaCarousel.Clear();
             // Get list and add to mediaCarousel
-            mediaCarousel.AddElement(MediaController.instance.FetchMedia(experienceId));
+            yield return MediaController.instance.FetchMedia(experienceId, imageUrls);
+            mediaCarousel.AddElement(MediaController.instance.media);
         }
     }
 
-    private void SetupExperienceInfo(int experienceId, List<string> resultFolders, string githubOwner, string githubRepo)
+    private void SetupExperienceInfo(int experienceId, string executableName, List<string> resultFolders, string githubOwner, string githubRepo)
     {
         this.experienceId = experienceId;
+        this.executableFilePath = executableName;
         this.resultFolders = resultFolders;
         this.githubOwner = githubOwner;
         this.githubRepo = githubRepo;
 
-        // Initialize experience folder if there is none
+        // Create a directory if there is none
+        string path = Application.streamingAssetsPath + "/" + experienceId;
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
     }
 
-    private void SetupExperienceStrings()
+    private void SetupExperienceComponents()
+    {
+        if (experienceId == 0)
+        {
+            mediaCarousel.gameObject.SetActive(false);
+            launchButton.transform.GetChild(0).gameObject.SetActive(false);
+            inputConfigurationButton.transform.GetChild(0).gameObject.SetActive(false);
+
+            languageDropdown.transform.GetChild(0).gameObject.SetActive(true);
+            TMP_Dropdown dropdown = languageDropdown.GetComponentInChildren<TMP_Dropdown>();
+            LocalizationController.instance.ApplyLocaleDropdown(dropdown);
+
+            CanvasGroup canvas = GetComponent<CanvasGroup>();
+            canvas.alpha = 1;
+            canvas.blocksRaycasts = true;
+
+        }
+        else
+        {
+            languageDropdown.transform.GetChild(0).gameObject.SetActive(false);
+        }
+    }
+
+    private IEnumerator SetupExperienceStrings()
     {
         // The LocaleText in the Experiences need the experienceId to fetch strings
         experienceTitle.groupKey = experienceId.ToString();
         experienceDescription.groupKey = experienceId.ToString();
-        StartCoroutine(GetLocalizationFiles());
+        yield return StartCoroutine(GetLocalizationFiles());
     }
 
     #endregion
@@ -290,7 +327,7 @@ public class Experience : MonoBehaviour
     private void SetStatus(string groupKey, string stringKey, string addedText)
     {
         SetStatus(groupKey, stringKey);
-        status.text = status.text + " " + addedText;
+        statusTextLocale.textBox.text = statusTextLocale.textBox.text + " " + addedText;
     }
     // Changes actual version component in version info
     private void SetVersion(string groupKey, string stringKey)
@@ -344,11 +381,11 @@ public class Experience : MonoBehaviour
 
         if (activate)
         {
-            inputConfigurationButton.interactable = true;
+            inputConfigurationButton.button.interactable = true;
         }
         else
         {
-            inputConfigurationButton.interactable = false;
+            inputConfigurationButton.button.interactable = false;
         }
     }
     #endregion
@@ -359,6 +396,7 @@ public class Experience : MonoBehaviour
     {
         yield return StartCoroutine(GetLocalizationFilesCoroutine());
         // Refresh strings
+        LocalizationController.instance.LoadExperienceStrings(experienceId, false);
         LocalizationController.instance.ApplyLocale();
     }
 
@@ -394,15 +432,13 @@ public class Experience : MonoBehaviour
         string url = $"https://api.github.com/repos/{githubOwner}/{githubRepo}/contents/Launcher/Localization";
 
         UnityWebRequest www = UnityWebRequest.Get(url);
-        www.SetRequestHeader("User-Agent", "InTeractiOn Launcher");
-        www.SetRequestHeader("Accept", "application/vnd.github.v3+json");
 
         yield return www.SendWebRequest();
 
         if (www.result == UnityWebRequest.Result.Success)
         {
             string responseJson = www.downloadHandler.text;
-            List<GithubFile> files = JsonUtility.FromJson<List<GithubFile>>(responseJson);
+            List<GithubFile> files = JsonConvert.DeserializeObject<List<GithubFile>>(responseJson);
 
             foreach (GithubFile file in files)
             {
@@ -415,11 +451,12 @@ public class Experience : MonoBehaviour
                     yield return StartCoroutine(DownloadLocalizationFiles(file.download_url, file.name, path));
                 }
             }
+            SetStatus("baseStrings", "data_done");
         }
         else
         {
-            SetStatus("baseStrings", "info_error", www.error);
-            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "info_error") + www.error, 5);
+            SetStatus("baseStrings", "data_error", www.error);
+            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "data_error") + www.error, 5);
         }
 
         isApiOperationRunning = false;
@@ -529,8 +566,8 @@ public class Experience : MonoBehaviour
         }
         else
         {
-            SetStatus("baseStrings", "data_error", www.error);
-            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "data_error") + www.error, 5);
+            SetStatus("baseStrings", "info_error", www.error);
+            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "info_error") + www.error, 5);
         }
        
         isApiOperationRunning = false;

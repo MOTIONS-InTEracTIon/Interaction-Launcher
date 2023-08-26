@@ -8,12 +8,14 @@ public class ErrorController : MonoBehaviour
 {
     // Components
     public TextMeshProUGUI errorBox;
+    public TextMeshProUGUI loadingBox;
 
     // Settings
     private float alertFadeTime = 0.3f;
 
     // Coroutine
     private bool alertCoroutineRunning;
+    Coroutine loadingCoroutine;
 
     public static ErrorController instance;
     public void Initialize()
@@ -32,20 +34,33 @@ public class ErrorController : MonoBehaviour
     {
         if(!alertCoroutineRunning) 
         {
-            StartCoroutine(SetAlert(message, duration));
+            StartCoroutine(SetAlert(message, duration, errorBox));
+        }
+    }
+
+    public void ShowLoading(bool enable)
+    {
+        if (enable)
+        {
+            loadingCoroutine = StartCoroutine(SetAlert(LocalizationController.instance.FetchString("baseStrings", "loading"), 100000, loadingBox));
+        }
+        else
+        {
+            loadingBox.GetComponent<CanvasGroup>().alpha = 0;
+            StopCoroutine(loadingCoroutine);
         }
     }
 
     #region UI Alert
 
-    private IEnumerator SetAlert(string alertMessage, float alertDuration)
+    private IEnumerator SetAlert(string alertMessage, float alertDuration, TextMeshProUGUI dialog)
     {
         alertCoroutineRunning = true;
         // Set message to alert
-        errorBox.SetText(alertMessage);
+        dialog.SetText(alertMessage);
 
         // Initiate operation to change its opacity to 1 then 0
-        CanvasGroup alertTextCanvasGroup = errorBox.gameObject.GetComponent<CanvasGroup>();
+        CanvasGroup alertTextCanvasGroup = dialog.gameObject.GetComponent<CanvasGroup>();
 
         float timer = 0;
         while (timer <= alertFadeTime)

@@ -57,11 +57,13 @@ public class ExperienceController : MonoBehaviour
 
         // Load Experiences Settings
         LoadSettingsFile();
-        // Fetch Experiences
-        StartCoroutine(InitializeExperiences());
+        // Build components for every experience fetched
+        BuildExperiences();
+        // Initialize first experience
+        StartCoroutine(InitializeExperience(0));
     }
 
-    public IEnumerator InitializeExperiences()
+    public void BuildExperiences()
     {
         experiences = new List<Experience>();
         // experienceToggles always starts with logo Toggle so we don't initialize it
@@ -69,21 +71,14 @@ public class ExperienceController : MonoBehaviour
         GetExperiences();
         // Fill experienceToggle list with toggles
         GetExperienceToggles();
-        // Initialize component
-        yield return null;
-        //yield return StartCoroutine(experiences[0].Initialize(0));
+
     }
 
     private void GetExperiences()
     {
         for (int i = 0; i < allExperiencesData.Count; i++)
         {
-            ExperienceData newExperienceData = allExperiencesData[i];
-
             Experience newExperience = Instantiate(experienceCardPrefab, experienceCardContainer.transform).GetComponent<Experience>();
-
-            newExperience.Initialize(i, newExperienceData.resultFolders, newExperienceData.githubOwner, newExperienceData.githubRepo, newExperienceData.imageUrls);
-
             experiences.Add(newExperience);
         }
     }
@@ -94,12 +89,28 @@ public class ExperienceController : MonoBehaviour
         {
             // Create toggle
             UIExperience uiExperience = Instantiate(uiExperiencePrefab, experienceScrollviewContent.transform).gameObject.GetComponent<UIExperience>();
-            uiExperience.Init(i);
             // Add toggle to list
             experienceToggles.Add(uiExperience.selectToggle);
+            uiExperience.Init(i, allExperiencesData[i].name);
+
         }
     }
 
+
+    #endregion
+
+    #region Data Operation
+
+    public IEnumerator InitializeExperience(int experienceId)
+    {
+        if (!experiences[experienceId].gameObject.activeInHierarchy)
+        {
+            experiences[experienceId].gameObject.SetActive(true);
+        }
+        ExperienceData experienceData = allExperiencesData[experienceId];
+        yield return StartCoroutine(experiences[experienceId].Initialize(experienceId, experienceData));
+
+    }
 
     #endregion
 
@@ -121,7 +132,10 @@ public class ExperienceController : MonoBehaviour
         experiences[componentId].gameObject.SetActive(true);
         actualExperienceCardId = componentId;
         // Initialize component
-        // VAS A INICIALIZARLO EN OTRO LADO yield return StartCoroutine(experiences[componentId].Initialize());
+        if (!experiences[actualExperienceCardId].initialized)
+        {
+            yield return StartCoroutine(experiences[componentId].Initialize(actualExperienceCardId ,allExperiencesData[actualExperienceCardId]));
+        }
         // FadeIn new component
         FadeUI newComponentFader = experiences[componentId].GetComponent<FadeUI>();
         yield return StartCoroutine(newComponentFader.FadeIn());
@@ -206,6 +220,7 @@ public class ExperienceController : MonoBehaviour
 
             ExperienceData baseExperienceData = new ExperienceData();
             baseExperienceData.name = "Interaction Launcher";
+            baseExperienceData.executableName = "";
             baseExperienceData.resultFolders = null;
             baseExperienceData.githubOwner = "MoriyarnnOrg"; // Change this when moving to Organization
             baseExperienceData.githubRepo = "Interaction-Launcher";
@@ -255,6 +270,7 @@ public class ExperiencesData
 public class ExperienceData
 {
     public string name;
+    public string executableName;
     public List<string> resultFolders;
     public string githubOwner;
     public string githubRepo;
