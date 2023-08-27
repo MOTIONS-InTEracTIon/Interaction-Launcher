@@ -1,18 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Android;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 using TMPro;
 using System;
-using System.IO;
-using JetBrains.Annotations;
-using static UnityEngine.InputSystem.InputBindingCompositeContext;
-using Unity.VisualScripting;
 
-public class InputConfiguration : MonoBehaviour
+public class InputConfiguration : ConfigurationMenu
 {
     // Prefabs
     [SerializeField] private GameObject inputBinderPrefab;
@@ -22,7 +16,6 @@ public class InputConfiguration : MonoBehaviour
     [SerializeField] public LocaleOptionDropdown modeDropdown;
     [SerializeField] private GameObject inputBinderContainer;
     [SerializeField] private ScrollRect inputBinderScrollview;
-
 
     // Data
     private List<UIInputBinder> inputBinders;
@@ -34,27 +27,19 @@ public class InputConfiguration : MonoBehaviour
     private bool enableDropdowns = true;
     public List<InputActionModeData> experienceAllInputActionModeData;
 
-    // Settings
-    private int id;
-    public bool isOpen;
-    public bool initialized;
-
     // Events
     public static event Action OnInputDeviceSelected;
 
-    private void OnDisable()
-    {
-        isOpen = false;
-        this.gameObject.SetActive(false);
-    }
 
     #region Initialize
-    public void Initialize(int experienceId)
+    public override void Initialize(int experienceId)
     {
         id = experienceId;
         inputBinders = new List<UIInputBinder>();
         // Load strings into new component
         LocalizationController.instance.ApplyLocale();
+        // Update InputController with experience inputs
+        InputController.instance.GetExperienceInputActionData(experienceId); 
         // Fill in interface devices
         FillDevices();
         // Fill in inputs of experience
@@ -62,6 +47,19 @@ public class InputConfiguration : MonoBehaviour
         // Load input saved data to input binders
 
         initialized = true;
+    }
+
+    public override void RefreshStrings()
+    {
+        base.RefreshStrings();
+        if(devicesDropdown.dropdown.value == 0)
+        {
+            devicesDropdown.dropdown.captionText.text = LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultdevice");
+        }
+        if(modeDropdown.dropdown.value == 0)
+        {
+            modeDropdown.dropdown.captionText.text = LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultmode");
+        }
     }
 
     private void FillDevices()
@@ -87,7 +85,7 @@ public class InputConfiguration : MonoBehaviour
             return;
         }
         // Get input_mapping file
-        experienceAllInputActionModeData = InputPersistanceController.instance.GetExperienceInputMapping(id).allInputActionsModeData;
+        experienceAllInputActionModeData = InputController.instance.GetExperienceInputMapping(id).allInputActionsModeData;
 
         if (experienceAllInputActionModeData == null)
         {
@@ -231,7 +229,7 @@ public class InputConfiguration : MonoBehaviour
         // Modify the data
         SetBinding(inputAction, inputBinding, mode);
         // Save and send the data to experience
-        InputPersistanceController.instance.UpdateAllExperienceBindings(experienceAllInputActionModeData, id);
+        InputController.instance.UpdateAllExperienceBindings(experienceAllInputActionModeData, id);
     }
 
     private void SetBinding(InputActionData inputAction, InputBindingData inputBinding, string mode)

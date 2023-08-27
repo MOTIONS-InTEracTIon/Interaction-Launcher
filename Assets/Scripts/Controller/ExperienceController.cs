@@ -24,7 +24,7 @@ public class ExperienceController : MonoBehaviour
     public List<ExperienceData> allExperiencesData;
 
     public string filePath;
-    [SerializeField] private List<Experience> experiences;
+    [SerializeField] public List<Experience> experiences;
     [SerializeField] private List<Toggle> experienceToggles;
 
     // Coroutine
@@ -38,6 +38,9 @@ public class ExperienceController : MonoBehaviour
     Color disabledColor = Color.black;
 
     public static ExperienceController instance;
+
+    // Events
+    public static event Action onExperienceCardChange;
 
     #region Initialize
     public void Initialize()
@@ -126,15 +129,14 @@ public class ExperienceController : MonoBehaviour
         // FadeOut actual component
         FadeUI actualCardFader = experiences[actualExperienceCardId].GetComponent<FadeUI>();
         yield return StartCoroutine(actualCardFader.FadeOut());
-        // Disable actual component
-        experiences[actualExperienceCardId].gameObject.SetActive(false);
-        // Enable new component
-        experiences[componentId].gameObject.SetActive(true);
         actualExperienceCardId = componentId;
+        onExperienceCardChange?.Invoke();
+        // Refresh experience strings
+        LocalizationController.instance.ApplyLocale(actualExperienceCardId);
         // Initialize component
         if (!experiences[actualExperienceCardId].initialized)
         {
-            yield return StartCoroutine(experiences[componentId].Initialize(actualExperienceCardId ,allExperiencesData[actualExperienceCardId]));
+            yield return StartCoroutine(InitializeExperience(actualExperienceCardId));
         }
         // FadeIn new component
         FadeUI newComponentFader = experiences[componentId].GetComponent<FadeUI>();

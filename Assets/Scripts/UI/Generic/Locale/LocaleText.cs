@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class LocaleText : LocaleComponent
+[RequireComponent(typeof(EventTrigger))]
+public class LocaleText : LocaleComponent, IPointerClickHandler
 {
     // Components
     [SerializeField] public TextMeshProUGUI textBox;
@@ -29,4 +31,15 @@ public class LocaleText : LocaleComponent
         }
     }
 
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        TMP_TextInfo textInfo = textBox.textInfo;
+        int linkIndex = TMP_TextUtilities.FindIntersectingLink(textBox, eventData.position, null);
+
+        if (linkIndex != -1)
+        {
+            TMP_LinkInfo linkInfo = textInfo.linkInfo[linkIndex];
+            Application.OpenURL(linkInfo.GetLinkID());
+        }
+    }
 }

@@ -26,6 +26,8 @@ public class Experience : MonoBehaviour
     [SerializeField] public CarouselScrollview mediaCarousel; // Integrated
     [SerializeField] public InputConfiguration inputConfigurationMenu; // Integrated
     [SerializeField] public LocaleTextButton inputConfigurationButton;
+    [SerializeField] public AboutConfiguration aboutConfigurationMenu; // Integrated
+    [SerializeField] public LocaleTextButton aboutConfigurationButton;
     [SerializeField] public LocaleTextButton launchButton;
     [SerializeField] public GameObject languageDropdown;
 
@@ -44,7 +46,8 @@ public class Experience : MonoBehaviour
 
     public string actualVersion;
     public string latestVersion;
-    public bool isInputMenuOn;
+
+    public ConfigurationMenu actualOpenConfigurationMenu; 
 
 
     // Settings
@@ -62,7 +65,17 @@ public class Experience : MonoBehaviour
     // Coroutine
     private bool isApiOperationRunning;
     private bool isExperienceRunning;
-    private bool isInputOperationRunning;
+    private bool isOpenMenuOperationRunning;
+
+    private void OnEnable()
+    {
+        ConfigurationMenu.onConfigurationMenuClosed += ClearActualMenu;
+    }
+
+    private void OnDisable()
+    {
+        ConfigurationMenu.onConfigurationMenuClosed -= ClearActualMenu;
+    }
 
     #region Initialize
     public IEnumerator Initialize(int experienceId, ExperienceData experienceData)
@@ -92,7 +105,7 @@ public class Experience : MonoBehaviour
         latestVersionText.text = "...";
         SetLaunchButton(false);
         SetDownloadButton(false);
-        SetInputButton(false);
+        SetExperienceFeatureButtons(false);
     }
 
     private IEnumerator SetExperienceData(int experienceId, string executableName, List<string> resultFolders, string githubOwner, string githubRepo, List<string> imageUrls)
@@ -100,7 +113,7 @@ public class Experience : MonoBehaviour
         if (experienceId < 0 || resultFolders == null || githubOwner == null || githubRepo == null)
         {
             ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "experience_error"), 5);
-            yield return null;
+            yield break;
         }
 
         // Set up basic info
@@ -116,7 +129,7 @@ public class Experience : MonoBehaviour
         {
             if (imageUrls == null)
             {
-                yield return null;
+                yield break;
             }
 
             mediaCarousel.Clear();
@@ -149,6 +162,7 @@ public class Experience : MonoBehaviour
             mediaCarousel.gameObject.SetActive(false);
             launchButton.transform.GetChild(0).gameObject.SetActive(false);
             inputConfigurationButton.transform.GetChild(0).gameObject.SetActive(false);
+            aboutConfigurationButton.transform.GetChild(0).gameObject.SetActive(false);
 
             languageDropdown.transform.GetChild(0).gameObject.SetActive(true);
             TMP_Dropdown dropdown = languageDropdown.GetComponentInChildren<TMP_Dropdown>();
@@ -179,13 +193,13 @@ public class Experience : MonoBehaviour
     public void LaunchExperience()
     {
         // Starting setup
-        if (isApiOperationRunning || isInputOperationRunning)
+        if (isApiOperationRunning || isOpenMenuOperationRunning)
         {
             return;
         }
 
         SetLaunchButton(false);
-        SetInputButton(false);
+        SetExperienceFeatureButtons(false);
         SetDownloadButton(false);
 
         // Inject inputs
@@ -207,7 +221,7 @@ public class Experience : MonoBehaviour
         isExperienceRunning = true;
 
         // Change Launch text to running
-        SetLaunchButton("baseStrings", "launchButton_running");
+        SetLaunch("baseStrings", "launchButton_running");
 
         // Will wait for process to end
         while (!experienceProcess.HasExited)
@@ -217,100 +231,98 @@ public class Experience : MonoBehaviour
         isExperienceRunning = false;
 
         // Once its done, reenable buttons and name
-        SetLaunchButton("baseStrings", "launchButton");
+        SetLaunch("baseStrings", "launchButton");
         SetLaunchButton(true);
-        SetInputButton(true);
+        SetExperienceFeatureButtons(true);
         yield return StartCoroutine(GetLatestVersion());
 
     }
 
     #endregion
 
-    #region Input Configuration
-    public void OpenInputMenu()
+    #region Configuration Menu windows
+    public void OpenMenu(string menuName)
     {
-        if (isInputOperationRunning)
+        if (isOpenMenuOperationRunning)
         {
             return;
         }
-        isInputOperationRunning = true;
-        StartCoroutine(OpenInputMenuCoroutine());
+        isOpenMenuOperationRunning = true;
+        StartCoroutine(OpenMenuCoroutine(menuName));
     }
-    public IEnumerator OpenInputMenuCoroutine()
+    public IEnumerator OpenMenuCoroutine(string menuName)
     {
+        ConfigurationMenu configurationMenuToOpen = null;
+
         // Open menu
-        if (inputConfigurationMenu.isOpen)
+        switch (menuName)
         {
-            yield return StartCoroutine(OpenMenu(false));
-        }
-        else
-        {
-            yield return StartCoroutine(OpenMenu(true));
+            case "input":
+                configurationMenuToOpen = inputConfigurationMenu;
+                break;
+            case "about":
+                configurationMenuToOpen = aboutConfigurationMenu;
+                break;
+            case "bundles":
+                
+                break;
         }
 
-        isInputOperationRunning = false;
+        // Close menu if one is already open
+        if (actualOpenConfigurationMenu != null)
+        {
+            // If the menu chosen is the one open, dont do anything
+            if (actualOpenConfigurationMenu == configurationMenuToOpen)
+            {
+                isOpenMenuOperationRunning = false;
+                yield break;
+            }
+            yield return StartCoroutine(OpenMenu(actualOpenConfigurationMenu));
+        }
+
+        yield return StartCoroutine(OpenMenu(configurationMenuToOpen));
+
+        isOpenMenuOperationRunning = false;
     }
 
-    private IEnumerator OpenMenu(bool activate)
+    private IEnumerator OpenMenu(ConfigurationMenu configurationMenu)
     {
+        bool activate = true;
+
+        if (configurationMenu.isOpen)
+        {
+            activate = false;
+        }
+
         if (activate)
         {
-            inputConfigurationMenu.isOpen = true;
-            inputConfigurationMenu.gameObject.SetActive(true);
+            actualOpenConfigurationMenu = configurationMenu;
+            configurationMenu.isOpen = true;
+            configurationMenu.gameObject.SetActive(true);
             // Initialize component
-            if (!inputConfigurationMenu.initialized)
+            if (!configurationMenu.initialized)
             {
-                inputConfigurationMenu.Initialize(experienceId);
+                configurationMenu.Initialize(experienceId);
             }
+
             // FadeIn component
-            FadeUI inputConfigurationFader = inputConfigurationMenu.gameObject.GetComponent<FadeUI>();
-            yield return StartCoroutine(inputConfigurationFader.FadeIn());
+            FadeUI configurationMenuFader = configurationMenu.gameObject.GetComponent<FadeUI>();
+            yield return StartCoroutine(configurationMenuFader.FadeIn());
         }
         else
         {
             // FadeOut component
-            FadeUI inputConfigurationFader = inputConfigurationMenu.gameObject.GetComponent<FadeUI>();
-            yield return StartCoroutine(inputConfigurationFader.FadeOut());
+            FadeUI configurationMenuFader = configurationMenu.gameObject.GetComponent<FadeUI>();
+            yield return StartCoroutine(configurationMenuFader.FadeOut());
             // Clear component
-            inputConfigurationMenu.gameObject.SetActive(false);
-            inputConfigurationMenu.isOpen = false;
+            configurationMenu.isOpen = false;
+            configurationMenu.gameObject.SetActive(false);
         }
-
     }
-    //
 
-    // Checks for current release from build folder
-    private void GetCurrentRelease()
+    private void ClearActualMenu()
     {
-        actualVersion = "None";
-        string versionPath;
-        // Get version.txt
-        if (experienceId == 0)
-        {
-            versionPath = Path.GetDirectoryName(Application.dataPath) + "/version.txt";
-        }
-        else
-        {
-            versionPath = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build" + "/version.txt";
-        }
-
-        // Set current release
-        if (File.Exists(versionPath))
-        {
-            currentVersionText.text = File.ReadAllText(versionPath);
-            actualVersion = currentVersionText.text;
-            // There is a version that can be launched so enable the launch button but only on experiences that have a launch button
-            if (!isInputMenuOn)
-            {
-                SetLaunchButton(true); // UI Update
-            }
-            SetInputButton(true);
-        }
-        else
-        {
-            SetVersion("baseStrings", "versionMissing");
-        }
-
+        actualOpenConfigurationMenu = null;
     }
 
     #endregion
@@ -329,14 +341,7 @@ public class Experience : MonoBehaviour
         SetStatus(groupKey, stringKey);
         statusTextLocale.textBox.text = statusTextLocale.textBox.text + " " + addedText;
     }
-    // Changes actual version component in version info
-    private void SetVersion(string groupKey, string stringKey)
-    {
-        currentVersionTextLocale.groupKey = groupKey;
-        currentVersionTextLocale.stringKey = stringKey;
-        currentVersionTextLocale.UpdateText();
-    }
-    private void SetLaunchButton(string groupKey, string stringKey)
+    private void SetLaunch(string groupKey, string stringKey)
     {
         launchButton.localeText.groupKey = groupKey;
         launchButton.localeText.stringKey = stringKey;
@@ -362,6 +367,11 @@ public class Experience : MonoBehaviour
 
     private void SetDownloadButton(bool activate)
     {
+        if (launchButton == null)
+        {
+            return;
+        }
+
         if (activate)
         {
             downloadButton.interactable = true;
@@ -388,6 +398,30 @@ public class Experience : MonoBehaviour
             inputConfigurationButton.button.interactable = false;
         }
     }
+
+    private void SetAboutButton(bool activate)
+    {
+        if (aboutConfigurationButton == null)
+        {
+            return;
+        }
+
+        if (activate)
+        {
+            aboutConfigurationButton.button.interactable = true;
+        }
+        else
+        {
+            aboutConfigurationButton.button.interactable = false;
+        }
+    }
+
+    private void SetExperienceFeatureButtons(bool activate)
+    {
+        SetInputButton(activate);
+        SetAboutButton(activate);
+        // SetBundlesButton(activate);
+    }
     #endregion
 
     #region API fetching
@@ -396,7 +430,7 @@ public class Experience : MonoBehaviour
     {
         yield return StartCoroutine(GetLocalizationFilesCoroutine());
         // Refresh strings
-        LocalizationController.instance.LoadExperienceStrings(experienceId, false);
+        LocalizationController.instance.LoadExperienceStrings(experienceId);
         LocalizationController.instance.ApplyLocale();
     }
 
@@ -408,9 +442,38 @@ public class Experience : MonoBehaviour
         // Get latest version
         yield return StartCoroutine(GetLatestVersionCoroutine());
     }
+    // Checks for current release from build folder
+    private void GetCurrentRelease()
+    {
+        actualVersion = "None";
+        string versionPath;
+        // Get version.txt
+        if (experienceId == 0)
+        {
+            versionPath = Path.GetDirectoryName(Application.dataPath) + "/version.txt";
+        }
+        else
+        {
+            versionPath = Application.streamingAssetsPath + "/" + experienceId.ToString() + "/build" + "/version.txt";
+        }
+
+        // Set current release
+        if (File.Exists(versionPath))
+        {
+            currentVersionText.text = File.ReadAllText(versionPath);
+            actualVersion = currentVersionText.text;
+            // There is a version that can be launched so enable the launch button but only on experiences that have a launch button
+            SetExperienceFeatureButtons(true);
+        }
+        else
+        {
+            currentVersionText.text = LocalizationController.instance.FetchString("baseStrings", "versionMissing");
+        }
+
+    }
 
     // Downloads latest release from github
-    private void GetLatestRelease()
+    public void GetLatestRelease()
     {
         if (initialized)
         {
@@ -487,6 +550,7 @@ public class Experience : MonoBehaviour
             if (releaseInfo.tag_name != null && releaseInfo.tag_name != "")
             {
                 latestVersionText.text = releaseInfo.tag_name + " (" + SizeFormatter.FormatSize(releaseInfo.assets[0].size) + ")";
+                latestVersion = releaseInfo.tag_name;
                 // If the version is correctly downloaded, you compare it to know if download or update is needed
                 SetStatus("baseStrings", "info_done");
                 if (actualVersion == "None")
@@ -498,6 +562,7 @@ public class Experience : MonoBehaviour
                 else
                 {
                     SetLaunchButton(true);
+                    SetExperienceFeatureButtons(true);
                     if (actualVersion == releaseInfo.tag_name)
                     {
                         if (!(experienceId == 0))
@@ -696,6 +761,7 @@ public class Experience : MonoBehaviour
             {
                 SetLaunchButton(true); // UI Update
                 SetDownloadButton(false); // UI Update
+                SetExperienceFeatureButtons(true);
 
                 File.WriteAllText(versionPath, downloadName);
                 SetStatus("baseStrings", "install_done");

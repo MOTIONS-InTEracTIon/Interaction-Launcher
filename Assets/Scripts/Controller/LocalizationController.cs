@@ -48,27 +48,32 @@ public class LocalizationController : MonoBehaviour
         // Load all possible locales
         locales = LoadLocales();
 
-        // Set default text
-        ApplyLocale(defaultLocale);
+        // Set default language
+        currentLocale = defaultLocale;
+
+        // Set text for starting experience
+        GetStringsLocale(0);
     }
 
-    // Applies locale to every LocaleComponent
-    public void ApplyLocale(string locale)
+    public void GetStringsLocale(int experienceId)
     {
-        currentLocale = locale;
-        // Get locale strings from file
+        // Get locale strings from file in current language
         LoadBaseStrings(currentLocale);
-        // Apply locale to textboxes
-        OnLanguageChange?.Invoke();
+        LoadExperienceStrings(experienceId);
     }
-    // -Current language overload
+
     public void ApplyLocale()
     {
         // Apply locale to textboxes
         OnLanguageChange?.Invoke();
     }
 
-
+    // Applies locale using a specific id
+    public void ApplyLocale(int experienceId)
+    {
+        GetStringsLocale(experienceId);
+        ApplyLocale();
+    }
 
     #endregion
 
@@ -126,11 +131,7 @@ public class LocalizationController : MonoBehaviour
     {
         // Dropdown changed, this means the baseStrings and the experience string must be fetched again
         currentLocale = languageDropdown.options[localeIndex].text;
-        // Get locale strings from file
-        LoadBaseStrings(currentLocale);
-        LoadExperienceStrings(ExperienceController.instance.actualExperienceCardId, true);
-        // Apply locale to textboxes
-        OnLanguageChange?.Invoke();
+        ApplyLocale(0);
     }
 
     #endregion
@@ -177,7 +178,7 @@ public class LocalizationController : MonoBehaviour
         }
     }
 
-    public void LoadExperienceStrings(int experienceId, bool update)
+    public void LoadExperienceStrings(int experienceId)
     {
         // Load from json experience Strings
         Dictionary<string, string> experienceStrings = new Dictionary<string, string>();

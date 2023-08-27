@@ -31,7 +31,7 @@
     "locale_error1": "One or more experiences have no  ",
     "locale_error2" : " locale file",
 
-    "versionMissing": "Not found.",
+    "versionMissing": "None.",
     "versionDownloadNeeded": "Download needed, press download button to start downloading.",
     "versionUpdateNeeded": "Update needed, press download button to start updating.",
     "versionUpToDate": "Up to date, press Launch to start.",
@@ -52,6 +52,7 @@
     "input_binder_defaultmode": "None",
     "input_binder_defaultbinding": "Default",
 
+    "aboutButton": "About",
     "about_title": "About",
     
     "launchButton": "Launch",
