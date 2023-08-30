@@ -56,18 +56,11 @@ public class UIInputBinder : MonoBehaviour
         this.inputAction = inputAction;
         this.inputBinding = inputBinding;
         // String loading
-        NameBinder(inputAction, inputBinding);
+        LocalizationController.instance.ApplyLocale();
         // Load info into binder
         LoadInfo(inputAction, inputBinding, modeName);
         // Disable Binder before a mode is chosen
         this.gameObject.SetActive(false);
-    }
-
-    private void NameBinder(InputActionData inputAction, InputBindingData inputBinding)
-    {
-        // Load strings into new component
-        LocalizationController.instance.ApplyLocale();
-        // Setting up of custom texts over here
     }
 
     private void LoadInfo(InputActionData inputAction, InputBindingData inputBinding, string modeName)
@@ -138,7 +131,7 @@ public class UIInputBinder : MonoBehaviour
 
         // Cycle through every and change the options depending on the binder type 
         List<string> inputPaths = new List<string>();
-        // Input Type Compatibility code part, will eventually use GetCompatibleControlType
+        // Input Type Compatibility code part
         foreach(InputControl inputControl in inputs)
         {
             string controltype = inputControl.layout;
@@ -167,15 +160,6 @@ public class UIInputBinder : MonoBehaviour
         }
     }
 
-    //This function will get more robust with type conversion patches (For example, to map to a Vector3 with a Vector2 or to use Keys or buttons to make an Axis go up and down)
-    //Note that the type conversion patches are experience bound, this means the experience has to implement the way to convert these types
-    //private List<string> GetCompatibleControlType(string controltype)
-    //{
-        // Retrieve the supported conversions in InputConfiguration and pass them up
-        // FOR NOW JUST LET SAME TYPE AND BUTTON/KEY
-        
-    //}
-
     public void UpdateBindSaveData()
     {
         // If a path was set, we need to know what it was
@@ -190,9 +174,10 @@ public class UIInputBinder : MonoBehaviour
             pathBinding = bindingLocaleOptionDropdown.originalOptions[bindingLocaleOptionDropdown.dropdown.value];
             string[] pathParts = pathBinding.Split("/");
             pathBinding = pathParts[0] + "/" + string.Join("/", pathParts, 1, pathParts.Length - 1);
-            inputBinding.path = pathBinding;
+
         }
-        
+
+        inputBinding.path = pathBinding;
         inputConfiguration.UpdateInputPersistance(inputAction, inputBinding, inputModeName);
     }
 

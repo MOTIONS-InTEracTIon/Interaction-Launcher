@@ -28,6 +28,8 @@ public class Experience : MonoBehaviour
     [SerializeField] public LocaleTextButton inputConfigurationButton;
     [SerializeField] public AboutConfiguration aboutConfigurationMenu; // Integrated
     [SerializeField] public LocaleTextButton aboutConfigurationButton;
+    [SerializeField] public AddonsConfiguration addonsConfigurationMenu; // Integrated
+    [SerializeField] public LocaleTextButton addonsConfigurationButton;
     [SerializeField] public LocaleTextButton launchButton;
     [SerializeField] public GameObject languageDropdown;
 
@@ -56,8 +58,8 @@ public class Experience : MonoBehaviour
     // Folders inside Data (Assets) that will be not deleted when updating or downloading
     public List<string> resultFolders;
     // Github 
-    private string githubOwner;
-    private string githubRepo;
+    public string githubOwner;
+    public string githubRepo;
     private List<string> imageUrls;
 
     public bool initialized;
@@ -83,8 +85,7 @@ public class Experience : MonoBehaviour
         ErrorController.instance.ShowLoading(true);
         // Clear information
         ClearData();
-
-        // Set up data THIS WILL CHANGE TO A JSON THAT STORES DATA ABOUT THE APP, LIKE THE EXECUTABLE PATH AND NAME
+        // Set up data
         yield return StartCoroutine(SetExperienceData(experienceId, experienceData.executableName, experienceData.resultFolders, experienceData.githubOwner, experienceData.githubRepo, experienceData.imageUrls));
         // Get version
         yield return StartCoroutine(GetLatestVersion());
@@ -122,8 +123,6 @@ public class Experience : MonoBehaviour
         yield return StartCoroutine(SetupExperienceStrings());
         // Set up conditional components
         SetupExperienceComponents();
-        // Set up bundles?
-
         // Set up images THIS WILL CHANGE TO A JSON THAT STORES DATA ABOUT THE APP, LIKE A LIST OF MEDIA FILES
         if (mediaCarousel.gameObject.activeInHierarchy)
         {
@@ -163,6 +162,7 @@ public class Experience : MonoBehaviour
             launchButton.transform.GetChild(0).gameObject.SetActive(false);
             inputConfigurationButton.transform.GetChild(0).gameObject.SetActive(false);
             aboutConfigurationButton.transform.GetChild(0).gameObject.SetActive(false);
+            addonsConfigurationButton.transform.GetChild(0).gameObject.SetActive(false);
 
             languageDropdown.transform.GetChild(0).gameObject.SetActive(true);
             TMP_Dropdown dropdown = languageDropdown.GetComponentInChildren<TMP_Dropdown>();
@@ -263,8 +263,8 @@ public class Experience : MonoBehaviour
             case "about":
                 configurationMenuToOpen = aboutConfigurationMenu;
                 break;
-            case "bundles":
-                
+            case "addons":
+                configurationMenuToOpen = addonsConfigurationMenu;
                 break;
         }
 
@@ -355,14 +355,7 @@ public class Experience : MonoBehaviour
             return;
         }
 
-        if (activate)
-        {
-            launchButton.button.interactable = true;
-        }
-        else
-        {
-            launchButton.button.interactable = false;
-        }
+        launchButton.button.interactable = activate;
     }
 
     private void SetDownloadButton(bool activate)
@@ -372,14 +365,7 @@ public class Experience : MonoBehaviour
             return;
         }
 
-        if (activate)
-        {
-            downloadButton.interactable = true;
-        }
-        else
-        {
-            downloadButton.interactable = false;
-        }
+        downloadButton.interactable = activate;
     }
 
     private void SetInputButton(bool activate)
@@ -389,14 +375,7 @@ public class Experience : MonoBehaviour
             return;
         }
 
-        if (activate)
-        {
-            inputConfigurationButton.button.interactable = true;
-        }
-        else
-        {
-            inputConfigurationButton.button.interactable = false;
-        }
+        inputConfigurationButton.button.interactable = activate;
     }
 
     private void SetAboutButton(bool activate)
@@ -406,21 +385,26 @@ public class Experience : MonoBehaviour
             return;
         }
 
-        if (activate)
+        aboutConfigurationButton.button.interactable = activate;
+
+    }
+
+    private void SetAddonsButton(bool activate)
+    {
+        if (addonsConfigurationButton == null)
         {
-            aboutConfigurationButton.button.interactable = true;
+            return;
         }
-        else
-        {
-            aboutConfigurationButton.button.interactable = false;
-        }
+
+        addonsConfigurationButton.button.interactable = activate;
+
     }
 
     private void SetExperienceFeatureButtons(bool activate)
     {
         SetInputButton(activate);
         SetAboutButton(activate);
-        // SetBundlesButton(activate);
+        SetAddonsButton(activate);
     }
     #endregion
 
@@ -549,8 +533,24 @@ public class Experience : MonoBehaviour
             ReleaseInfo releaseInfo = JsonUtility.FromJson<ReleaseInfo>(responseJson);
             if (releaseInfo.tag_name != null && releaseInfo.tag_name != "")
             {
-                latestVersionText.text = releaseInfo.tag_name + " (" + SizeFormatter.FormatSize(releaseInfo.assets[0].size) + ")";
-                latestVersion = releaseInfo.tag_name;
+                try
+                {
+                    int mainAssetIndex = -1;
+                    for (int i = 0; i < releaseInfo.assets.Count; i++)
+                    {
+                        if (releaseInfo.assets[i].name == releaseInfo.tag_name + ".zip")
+                        {
+                            mainAssetIndex = i;
+                        }
+                    }
+                    latestVersionText.text = releaseInfo.tag_name + " (" + SizeFormatter.FormatSize(releaseInfo.assets[mainAssetIndex].size) + ")";
+                    latestVersion = releaseInfo.tag_name;
+                }
+                catch(Exception e)
+                {
+                    UnityEngine.Debug.Log("There is no main file with name tag_name in the release");
+                }
+
                 // If the version is correctly downloaded, you compare it to know if download or update is needed
                 SetStatus("baseStrings", "info_done");
                 if (actualVersion == "None")
@@ -623,7 +623,16 @@ public class Experience : MonoBehaviour
             string responseJson = www.downloadHandler.text;
             ReleaseInfo releaseInfo = JsonUtility.FromJson<ReleaseInfo>(responseJson);
             // Parse the JSON response to get the asset's download URL
-            string downloadUrl = releaseInfo.assets[0].url;
+            // Only the base file
+            int mainAssetIndex = -1;
+            for (int i = 0; i < releaseInfo.assets.Count; i++)
+            {
+                if (releaseInfo.assets[i].name == releaseInfo.tag_name + ".zip")
+                {
+                    mainAssetIndex = i;
+                }
+            }
+            string downloadUrl = releaseInfo.assets[mainAssetIndex].url;
             string downloadTitle = releaseInfo.tag_name;
 
 
@@ -799,7 +808,7 @@ public class Experience : MonoBehaviour
         // Unzip
         yield return StartCoroutine(UnzipCoroutine(zipPath, unzipPath));
     }
-    private IEnumerator UnzipCoroutine(string zipFilePath, string extractionPath)
+    public IEnumerator UnzipCoroutine(string zipFilePath, string extractionPath)
     {
         using (var zipFile = new ZipFile(zipFilePath))
         {
@@ -868,6 +877,8 @@ public class Experience : MonoBehaviour
     public class AssetInfo
     {
         public string url;
+        public string download_url;
+        public string name;
         public long size;
     }
 

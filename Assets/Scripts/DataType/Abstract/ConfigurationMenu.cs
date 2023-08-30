@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public abstract class ConfigurationMenu : MonoBehaviour
 {
     // Settings
-    protected int id;
+    public int id;
     public bool isOpen;
     public bool initialized;
 
@@ -22,7 +22,7 @@ public abstract class ConfigurationMenu : MonoBehaviour
     private void OnEnable()
     {
         ExperienceController.onExperienceCardChange += SetMenuClosed;
-        RefreshStrings();
+        RefreshConfigurationMenu();
     }
 
     private void OnDisable()
@@ -68,7 +68,7 @@ public abstract class ConfigurationMenu : MonoBehaviour
     #region Data Operations
 
     // This method refreshes the strings and executes any post fetch code menu specific
-    public virtual void RefreshStrings()
+    public virtual void RefreshConfigurationMenu()
     {
         LocalizationController.instance.ApplyLocale();
     }

@@ -19,16 +19,16 @@ public class AboutConfiguration : ConfigurationMenu
         // Set up component data
         SetExperienceAbout(experienceId);
         // Load strings into new components
-        RefreshStrings();
+        RefreshConfigurationMenu();
         // Format string to highlight url links
         aboutText.textBox.text = FormatText(aboutText.textBox.text);
 
         initialized = true;
     }
 
-    public override void RefreshStrings()
+    public override void RefreshConfigurationMenu()
     {
-        base.RefreshStrings();
+        base.RefreshConfigurationMenu();
         aboutText.textBox.text = FormatText(LocalizationController.instance.FetchString(ExperienceController.instance.actualExperienceCardId.ToString(), "about"));
     }
 

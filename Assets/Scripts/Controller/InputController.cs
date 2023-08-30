@@ -66,15 +66,9 @@ public class InputController : MonoBehaviour
     }
 
     private void SetExperienceInputActionData(List<InputActionModeData> data, int experienceId)
-    {   
+    {
         // Inserts new mode data assigned to an experienceId in the input action data attribute
-        foreach(ExperienceInputActionData experienceInputActionData in allExperiencesInputData)
-        {
-            if(experienceInputActionData.experienceId == experienceId)
-            {
-                experienceInputActionData.experienceInputActionsData.allInputActionsModeData = data;
-            }
-        }
+        allExperiencesInputData[experienceId].experienceInputActionsData.allInputActionsModeData = data;
     }
 
 
@@ -163,12 +157,6 @@ public class InputBindingData
 }
 
 // Regarding launcher binding data
-[Serializable]
-public class LauncherInputActionSaveData
-{
-    public List<ExperienceInputActionData> allExperiencesInputActionData;
-}
-
 [Serializable]
 public class ExperienceInputActionData
 {

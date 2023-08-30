@@ -54,7 +54,19 @@
 
     "aboutButton": "About",
     "about_title": "About",
+
+    "addons_button": "Addons",
+    "addons_title": "Addons",
+    "addons_type": "Addon Type",
+    "addons_error_noaddons": "Experience has no addons file, this should be added before releasing the experience",
     
+    "addons_selector_defaulttype": "None",
+    "addons_selector_name": "Addon name: ",
+    "addons_selector_info_error": "Couldn't fetch addon size ",
+    "addons_selector_download_error": "Couldn't download addon ",
+    "addons_selector_install_error": "Couldn't install addon ",
+    "addons_selector_downloading": "Downloading...",
+
     "launchButton": "Launch",
     "launchButton_running": "Running...",
     "exitButton": "Exit",

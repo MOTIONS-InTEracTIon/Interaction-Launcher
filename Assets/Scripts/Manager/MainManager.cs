@@ -12,6 +12,7 @@ public class MainManager : MonoBehaviour
     [SerializeField] public ExperienceController experienceController;
     [SerializeField] public MediaController mediaController;
     [SerializeField] public InputController inputController;
+    [SerializeField] public AddonsController addonsController;
 
     public static MainManager instance;
     private void Start()
@@ -34,6 +35,7 @@ public class MainManager : MonoBehaviour
         localizationController.Initialize();
         experienceController.Initialize();
         inputController.Initialize();
+        addonsController.Initialize();
         
     }
 

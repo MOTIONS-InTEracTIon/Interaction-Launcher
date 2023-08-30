@@ -20,7 +20,6 @@ public class InputConfiguration : ConfigurationMenu
     // Data
     private List<UIInputBinder> inputBinders;
     private List<UIInputBinder> activeBinders;
-    private UIInputBinder currentOpenedInputBinder;
     public List<string> deviceNames = new List<string>();
     public List<string> modeNames = new List<string>();
     private bool isScrolling = false;
@@ -39,19 +38,18 @@ public class InputConfiguration : ConfigurationMenu
         // Load strings into new component
         LocalizationController.instance.ApplyLocale();
         // Update InputController with experience inputs
-        InputController.instance.GetExperienceInputActionData(experienceId); 
+        InputController.instance.GetExperienceInputActionData(id);
         // Fill in interface devices
         FillDevices();
         // Fill in inputs of experience
         FillExperienceInputs();
-        // Load input saved data to input binders
 
         initialized = true;
     }
 
-    public override void RefreshStrings()
+    public override void RefreshConfigurationMenu()
     {
-        base.RefreshStrings();
+        base.RefreshConfigurationMenu();
         if(devicesDropdown.dropdown.value == 0)
         {
             devicesDropdown.dropdown.captionText.text = LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultdevice");
@@ -60,6 +58,8 @@ public class InputConfiguration : ConfigurationMenu
         {
             modeDropdown.dropdown.captionText.text = LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultmode");
         }
+        // Update InputController with experience inputs
+        InputController.instance.GetExperienceInputActionData(id);
     }
 
     private void FillDevices()
@@ -223,7 +223,9 @@ public class InputConfiguration : ConfigurationMenu
     }
     //
 
-    // Persistance
+    #endregion
+
+    #region Persistance
     public void UpdateInputPersistance(InputActionData inputAction, InputBindingData inputBinding, string mode)
     {
         // Modify the data
@@ -246,7 +248,7 @@ public class InputConfiguration : ConfigurationMenu
                     {
                         foreach (InputBindingData inputBindingData in inputActionData.inputBindings)
                         {
-                            if(inputBindingData.bindingName == inputBinding.bindingName &&
+                            if (inputBindingData.bindingName == inputBinding.bindingName &&
                                inputBindingData.isComposite == inputBinding.isComposite &&
                                inputBindingData.isPartOfComposite == inputBinding.isPartOfComposite)
                             {
