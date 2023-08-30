@@ -66,6 +66,7 @@
     "addons_selector_download_error": "Couldn't download addon ",
     "addons_selector_install_error": "Couldn't install addon ",
     "addons_selector_downloading": "Downloading...",
+    "addons_selector_extracting": "Extracting...",
 
     "launchButton": "Launch",
     "launchButton_running": "Running...",

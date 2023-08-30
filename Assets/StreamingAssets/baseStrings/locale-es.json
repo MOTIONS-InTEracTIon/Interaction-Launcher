@@ -9,6 +9,8 @@
 
     "experienceStrings_error": "No se encontraron los strings de la experiencia con ID: ",
 
+    "media_error": "Falló la carga de multimedia",
+
     "data": "Buscando data...",
     "data_error": "No se pudo completar la busqueda ",
     "data_done": "Data encontrada.",
@@ -52,6 +54,19 @@
 
     "aboutButton": "Acerca",
     "about_title": "Acerca",
+
+    "addons_button": "Addons",
+    "addons_title": "Addons",
+    "addons_type": "Tipo de addon",
+    "addons_error_noaddons": "La experiencia no tiene archivo de addons, este debe ser inicializado antes de release",
+    
+    "addons_selector_defaulttype": "Ninguno",
+    "addons_selector_name": "Nombre del addon: ",
+    "addons_selector_info_error": "No se pudo obtener tamaño de addon ",
+    "addons_selector_download_error": "No se pudo descargar addon ",
+    "addons_selector_install_error": "No se pudo instalar addon ",
+    "addons_selector_downloading": "Descargando...",
+    "addons_selector_extracting": "Extrayendo...",
 
     "launchButton": "Iniciar",
     "launchButton_running": "En ejecución...",

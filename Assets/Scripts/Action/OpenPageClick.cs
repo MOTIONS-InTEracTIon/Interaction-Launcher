@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(TextMeshProUGUI))]
-public class HyperlinkClickHandler : MonoBehaviour, IPointerClickHandler
+public class OpenPageClick : MonoBehaviour, IPointerClickHandler
 {
     public void OnPointerClick(PointerEventData eventData)
     {
