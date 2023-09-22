@@ -95,7 +95,6 @@ public class ExperienceController : MonoBehaviour
             // Add toggle to list
             experienceToggles.Add(uiExperience.selectToggle);
             uiExperience.Init(i, allExperiencesData[i].name);
-
         }
     }
 

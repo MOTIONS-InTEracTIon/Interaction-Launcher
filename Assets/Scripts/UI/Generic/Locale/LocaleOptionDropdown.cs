@@ -5,6 +5,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class LocaleOptionDropdown : MonoBehaviour
 {
@@ -78,7 +79,7 @@ public class LocaleOptionDropdown : MonoBehaviour
         }
 
         string betterVisualOption = input.Replace(@"\s{2,}", "");
-        string[] optionParts = betterVisualOption.Split("/");
+        string[] optionParts = betterVisualOption.Split(new string[] { "/" }, StringSplitOptions.None);
         if (optionParts[0].Length > 4)
         {
             optionParts[0] = optionParts[0].Substring(0, 4) + "...";

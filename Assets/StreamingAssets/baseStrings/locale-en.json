@@ -7,7 +7,8 @@
     "settings_error": "There is no settings.json, creating a default one to configure...",
     "experience_error": "Failed to setup experience, there was an error with settings.json or Github API wont respond back, try again later.",
 
-    "experienceStrings_error": "Experience strings not found for experience with ID: ",
+    "experienceStrings_error": "Failed to download experience strings, be sure to be connected to internet",
+    "experienceStrings": "First execution, attempting to download experience strings, be sure to be connected to internet",
 
     "media_error": "Failed to download media file",
 

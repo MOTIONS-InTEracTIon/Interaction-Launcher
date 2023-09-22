@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public abstract class ConfigurationMenu : MonoBehaviour
 {
     // Settings
-    public int id;
+    public int experienceId;
     public bool isOpen;
     public bool initialized;
 

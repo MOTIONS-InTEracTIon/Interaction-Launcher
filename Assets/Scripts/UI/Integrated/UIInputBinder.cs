@@ -138,13 +138,13 @@ public class UIInputBinder : MonoBehaviour
 
             if (controltype == inputType || inputType == "Any")
             {
-                string[] pathSplit = inputControl.path.Split("/");
+                string[] pathSplit = inputControl.path.Split(new string[] { "/" }, StringSplitOptions.None);
                 string path = string.Join("/", pathSplit, 2, pathSplit.Length - 2);
                 inputPaths.Add(inputConfiguration.devicesDropdown.originalOptions[inputConfiguration.devicesDropdown.dropdown.value] + "/" + path);
             }
             else if (inputType == "Button" && controltype == "Key")
             {
-                string[] pathSplit = inputControl.path.Split("/");
+                string[] pathSplit = inputControl.path.Split(new string[] { "/" }, StringSplitOptions.None);
                 string path = string.Join("/", pathSplit, 1, pathSplit.Length - 1);
                 inputPaths.Add(inputConfiguration.devicesDropdown.originalOptions[inputConfiguration.devicesDropdown.dropdown.value] + "/" + path);
             }
@@ -172,7 +172,7 @@ public class UIInputBinder : MonoBehaviour
         else
         {
             pathBinding = bindingLocaleOptionDropdown.originalOptions[bindingLocaleOptionDropdown.dropdown.value];
-            string[] pathParts = pathBinding.Split("/");
+            string[] pathParts = pathBinding.Split(new string[] { "/" }, StringSplitOptions.None);
             pathBinding = pathParts[0] + "/" + string.Join("/", pathParts, 1, pathParts.Length - 1);
 
         }

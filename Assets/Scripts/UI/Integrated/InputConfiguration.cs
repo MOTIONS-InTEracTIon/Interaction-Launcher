@@ -33,12 +33,12 @@ public class InputConfiguration : ConfigurationMenu
     #region Initialize
     public override void Initialize(int experienceId)
     {
-        id = experienceId;
+        this.experienceId = experienceId;
         inputBinders = new List<UIInputBinder>();
         // Load strings into new component
         LocalizationController.instance.ApplyLocale();
         // Update InputController with experience inputs
-        InputController.instance.GetExperienceInputActionData(id);
+        InputController.instance.GetExperienceInputActionData(experienceId);
         // Fill in interface devices
         FillDevices();
         // Fill in inputs of experience
@@ -59,7 +59,7 @@ public class InputConfiguration : ConfigurationMenu
             modeDropdown.dropdown.captionText.text = LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultmode");
         }
         // Update InputController with experience inputs
-        InputController.instance.GetExperienceInputActionData(id);
+        InputController.instance.GetExperienceInputActionData(experienceId);
     }
 
     private void FillDevices()
@@ -69,7 +69,7 @@ public class InputConfiguration : ConfigurationMenu
         // Create list of Dropdown with input device names
         foreach (InputDevice device in devices)
         {
-            string[] deviceName = device.ToString().Split(":/");
+            string[] deviceName = device.ToString().Split(new string[] { ":/" }, StringSplitOptions.None);
             deviceNames.Add(deviceName[0]);
         }
 
@@ -85,7 +85,7 @@ public class InputConfiguration : ConfigurationMenu
             return;
         }
         // Get input_mapping file
-        experienceAllInputActionModeData = InputController.instance.GetExperienceInputMapping(id).allInputActionsModeData;
+        experienceAllInputActionModeData = InputController.instance.GetExperienceInputMapping(experienceId).allInputActionsModeData;
 
         if (experienceAllInputActionModeData == null)
         {
@@ -231,7 +231,7 @@ public class InputConfiguration : ConfigurationMenu
         // Modify the data
         SetBinding(inputAction, inputBinding, mode);
         // Save and send the data to experience
-        InputController.instance.UpdateAllExperienceBindings(experienceAllInputActionModeData, id);
+        InputController.instance.UpdateAllExperienceBindings(experienceAllInputActionModeData, experienceId);
     }
 
     private void SetBinding(InputActionData inputAction, InputBindingData inputBinding, string mode)

@@ -4,7 +4,7 @@
             "name": "Interaction Launcher",
             "executableName": "",
             "resultFolders": [],
-            "githubOwner": "MoriyarnnOrg",
+            "githubOwner": "MOTIONS-InTEracTIon",
             "githubRepo": "Interaction-Launcher",
             "imageUrls": []
         },
@@ -24,18 +24,17 @@
             ]
         },
         {
-            "name": "VoRTIcES Copia",
-            "executableName": "VORTICES-2.exe",
+            "name": "Escape Room",
+            "executableName": "Motions Escape Room",
             "resultFolders": [
-                "Results"
             ],
             "githubOwner": "MOTIONS-InTEracTIon",
-            "githubRepo": "VORTICES-2",
+            "githubRepo": "Escape-Room",
             "imageUrls": [
-                "https://i.imgur.com/dirmuD9.png",
-                "https://i.imgur.com/1hev8Sk.png",
-                "https://i.imgur.com/1hev8Sk.png",
-                "https://i.imgur.com/LRVZzGW.mp4"
+                "https://i.imgur.com/PGgQ4gM.png",
+                "https://i.imgur.com/aFw03F4.png",
+                "https://i.imgur.com/sFmdnmv.png",
+                "https://i.imgur.com/zRrWQgS.png"
             ]
         }
     ]

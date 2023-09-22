@@ -139,8 +139,10 @@ public class AddonData
 [Serializable]
 public class Addon
 {
+    public int addonId;
     public string addonName;
     public string addonType;
+    public string addonSize;
     public bool enabled;
     public List<string> addonFileNames;
 }

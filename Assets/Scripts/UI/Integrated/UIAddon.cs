@@ -32,6 +32,7 @@ public class UIAddon : MonoBehaviour
     public int addonId;
     public string addonName;
     public string addonType;
+    public string addonSize;
     private bool enabled;
     private bool downloaded;
     private Addon addon;
@@ -43,34 +44,38 @@ public class UIAddon : MonoBehaviour
 
     #region Initialize
 
-    public IEnumerator Initialize(int addonId, Addon addon, AddonsConfiguration inputWindow)
+    public void Initialize(int addonId, Addon addon, AddonsConfiguration inputWindow)
     {
         this.addonId = addonId;
         addonsConfiguration = inputWindow;
         // String loading
         LocalizationController.instance.ApplyLocale();
         // Load info into addon
-        yield return StartCoroutine(LoadInfo(addon));
+        LoadInfo(addon);
         // Disable Addon before a type is chosen
         this.gameObject.SetActive(false);
     }
 
-    private IEnumerator LoadInfo(Addon addon)
+    private void LoadInfo(Addon addon)
     {
-        addonsPath = Application.streamingAssetsPath + "/" + addonsConfiguration.id + "/build/Addons/";
+        addonsPath = Application.streamingAssetsPath + "/" + addonsConfiguration.experienceId + "/build/Addons/";
 
         addonName = addon.addonName;
         addonType = addon.addonType;
+        addonSize = addon.addonSize;
         enabled = addon.enabled;
 
         this.addon = addon;
 
         nameInputField.text = addonName;
+        sizeText.text = addonSize;
 
-        // Get total addon size from github
-        yield return StartCoroutine(GetAddonSizeCoroutine());
+        // If it was not downloaded, wait for AddonsConfiguration size
+        StartCoroutine(SetSize());
+
         // Check if it was downloaded and set enable toggle or download button
         SetDownloadedStatus();
+
     }
     private void SetDownloadedStatus()
     {
@@ -85,33 +90,29 @@ public class UIAddon : MonoBehaviour
         List<string> downloadedFiles = new List<string>();
 
         // Checks if every file of the bundle is downloaded
-        if (addonType == "Environment")
+        string path = addonsPath + addonType;
+
+        // Get all files in directory
+        // If there is none, return the empty list
+        if (!Directory.Exists(path))
         {
-            string path = addonsPath + addonType;
+            Directory.CreateDirectory(path);
+            return downloadedFiles;
+        }
 
-            // Get all files in directory
-            // If there is none, return the empty list
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-                return downloadedFiles;
-            }
+        string[] filePaths = Directory.GetFiles(path);
+        List<string> fileNames = new List<string>();
+        foreach (string filePath in filePaths)
+        {
+            fileNames.Add(Path.GetFileName(filePath));
+        }
 
-            string[] filePaths = Directory.GetFiles(path);
-            List<string> fileNames = new List<string>();
-            foreach (string filePath in filePaths)
+        // Check every file in the Addon
+        foreach (string addonFileName in addon.addonFileNames)
+        {
+            if (fileNames.Contains(addonFileName))
             {
-                fileNames.Add(Path.GetFileName(filePath));
-            }
-            // Check for panel
-            if (fileNames.Contains(addon.addonFileNames[0]))
-            {
-                downloadedFiles.Add(addon.addonFileNames[0]);
-            }
-            // Check for scene
-            if (fileNames.Contains(addon.addonFileNames[1]))
-            {
-                downloadedFiles.Add(addon.addonFileNames[1]);
+                downloadedFiles.Add(addonFileName);
             }
         }
 
@@ -131,6 +132,26 @@ public class UIAddon : MonoBehaviour
         }
 
         return false;
+    }
+
+    private IEnumerator SetSize()
+    {
+        float timer = 10.0f;
+        while (!addonsConfiguration.sizeFetched && timer > 0)
+        {
+            timer -= Time.deltaTime;
+            yield return null;
+        }
+
+        if(timer <= 0)
+        {
+            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "addons_selector_info_error"), 5);
+        }
+        else
+        {
+            sizeText.text = addonsConfiguration.addonSizes[addon.addonId];
+
+        }
     }
 
     // Changes status of download button and toggle depending on variables
@@ -169,50 +190,6 @@ public class UIAddon : MonoBehaviour
     #endregion
 
     #region Github API methods
-    private IEnumerator GetAddonSizeCoroutine()
-    {
-        if (isApiOperationRunning)
-        {
-            yield break;
-        }
-        isApiOperationRunning = true;
-
-        string url = $"https://api.github.com/repos/" + ExperienceController.instance.experiences[addonsConfiguration.id].githubOwner +
-                                          "/" + ExperienceController.instance.experiences[addonsConfiguration.id].githubRepo +
-                                          "/releases/latest";
-
-        UnityWebRequest www = UnityWebRequest.Get(url);
-        www.SetRequestHeader("User-Agent", "InTeraciOn Launcher");
-        www.SetRequestHeader("Accept", "application/vnd.github.v3+json");
-
-        yield return www.SendWebRequest();
-
-        if (www.result == UnityWebRequest.Result.Success)
-        {
-            string responseJson = www.downloadHandler.text;
-            ReleaseInfo releaseInfo = JsonUtility.FromJson<ReleaseInfo>(responseJson);
-            if (releaseInfo.tag_name != null && releaseInfo.tag_name != "")
-            {
-                // Only the addon file
-                int assetIndex = -1;
-                for (int i = 0; i < releaseInfo.assets.Count; i++)
-                {
-                    if (StringUtils.GithubAssetToNormal(releaseInfo.assets[i].name) == addonName)
-                    {
-                        assetIndex = i;
-                    }
-                }
-                sizeText.text = SizeFormatter.FormatSize(releaseInfo.assets[assetIndex].size);
-            }
-        }
-        else
-        {
-            ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "addons_selector_info_error") + www.error, 5);
-        }
-
-        isApiOperationRunning = false;
-    }
-
     public IEnumerator GetAddonCoroutine()
     {
         if (isApiOperationRunning)
@@ -223,8 +200,8 @@ public class UIAddon : MonoBehaviour
         downloadButton.interactable = false;
 
         // Get list of files inside addon folder of addon type
-        string url = $"https://api.github.com/repos/" + ExperienceController.instance.experiences[addonsConfiguration.id].githubOwner +
-                                                  "/" + ExperienceController.instance.experiences[addonsConfiguration.id].githubRepo +
+        string url = $"https://api.github.com/repos/" + ExperienceController.instance.experiences[addonsConfiguration.experienceId].githubOwner +
+                                                  "/" + ExperienceController.instance.experiences[addonsConfiguration.experienceId].githubRepo +
                                                   "/releases/latest";
         string saveUrl = addonsPath + addonType;
 

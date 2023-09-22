@@ -378,7 +378,7 @@ public class Experience : MonoBehaviour
         inputConfigurationButton.button.interactable = activate;
     }
 
-    private void SetAboutButton(bool activate)
+    public void SetAboutButton(bool activate)
     {
         if (aboutConfigurationButton == null)
         {
@@ -403,7 +403,6 @@ public class Experience : MonoBehaviour
     private void SetExperienceFeatureButtons(bool activate)
     {
         SetInputButton(activate);
-        SetAboutButton(activate);
         SetAddonsButton(activate);
     }
     #endregion
@@ -495,6 +494,7 @@ public class Experience : MonoBehaviour
 
                 if (!File.Exists(path))
                 {
+                    ErrorController.instance.ShowError(LocalizationController.instance.FetchString("baseStrings", "experienceStrings"), 5);
                     yield return StartCoroutine(DownloadLocalizationFiles(file.download_url, file.name, path));
                 }
             }

@@ -8,6 +8,7 @@
     "experience_error": "Falló la inicialización de la experiencia, pudo haber un error en settings.json o la API de Github no responde, intentelo más tarde.",
 
     "experienceStrings_error": "No se encontraron los strings de la experiencia con ID: ",
+    "experienceStrings": "Primera ejecución, se intentará descargar las strings de la experiencia, asegurate de estar conectado a internet",
 
     "media_error": "Falló la carga de multimedia",
 

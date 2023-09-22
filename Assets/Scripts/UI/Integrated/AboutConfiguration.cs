@@ -22,6 +22,7 @@ public class AboutConfiguration : ConfigurationMenu
         RefreshConfigurationMenu();
         // Format string to highlight url links
         aboutText.textBox.text = FormatText(aboutText.textBox.text);
+        ExperienceController.instance.experiences[ExperienceController.instance.actualExperienceCardId].SetAboutButton(true);
 
         initialized = true;
     }
@@ -36,7 +37,7 @@ public class AboutConfiguration : ConfigurationMenu
 
     private void SetExperienceAbout(int experienceId)
     {
-        id = experienceId;
+        this.experienceId = experienceId;
         // Localization controller has already fetched the strings in Experience.Initialize()
         aboutText.groupKey = experienceId.ToString();
     }

@@ -5,6 +5,7 @@ using DentedPixel;
 using Unity.VisualScripting;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class ProgressBar : MonoBehaviour
 {
@@ -28,7 +29,7 @@ public class ProgressBar : MonoBehaviour
 
     public void AddFileToCounter()
     {
-        string[] files = fileCounter.text.Split("/");
+        string[] files = fileCounter.text.Split(new string[] { "/" }, StringSplitOptions.None);
         int newValue = int.Parse(files[0]) + 1;
         string newFiles = newValue.ToString() + "/" + files[1];
     }

@@ -10,8 +10,8 @@ public static class StringUtils
         // If a dot is found, strip the extension
         string strippedString = lastDotIndex >= 0 ? input.Substring(0, lastDotIndex) : input;
 
-        // Replace remaining dots with spaces
-        string result = strippedString.Replace('.', ' ');
+        // Replace remaining dashes with spaces
+        string result = strippedString.Replace('-', ' ');
 
         return result;
     }

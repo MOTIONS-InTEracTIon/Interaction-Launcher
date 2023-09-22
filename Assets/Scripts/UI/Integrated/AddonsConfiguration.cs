@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using System;
 using System.Linq;
 using System.IO;
+using UnityEngine.Networking;
 
 public class AddonsConfiguration : ConfigurationMenu
 {
@@ -21,18 +22,23 @@ public class AddonsConfiguration : ConfigurationMenu
     // Data
     private List<UIAddon> addonElements;
     private List<UIAddon> activeAddonElements;
-    public List<string> addonNames = new List<string>();
-    public List<string> addonTypeNames = new List<string>();
+    public List<string> addonSizes;
     public List<Addon> experienceAddons;
+    public bool sizeFetched;
 
     // Events
     public static event Action OnAddonTypeSelected;
 
+    // Coroutine
+    public bool isApiOperationRunning;
+
     #region Initialize
     public override void Initialize(int experienceId)
     {
-        id = experienceId;
+        this.experienceId = experienceId;
         addonElements = new List<UIAddon>();
+        addonSizes = new List<string>();
+        sizeFetched = false;
         // Load strings into new component
         LocalizationController.instance.ApplyLocale();
         // Update InputController with experience addons
@@ -59,7 +65,7 @@ public class AddonsConfiguration : ConfigurationMenu
         // Create list of Dropdown with types of addons
         HashSet<string> uniqueAddonTypes = new HashSet<string>();
 
-        foreach (Addon addon in AddonsController.instance.allExperiencesAddonData[id].experienceAddonData.addons)
+        foreach (Addon addon in AddonsController.instance.allExperiencesAddonData[experienceId].experienceAddonData.addons)
         {
             if (!string.IsNullOrEmpty(addon.addonType))
             {
@@ -79,7 +85,7 @@ public class AddonsConfiguration : ConfigurationMenu
             return;
         }
         // Get addons file
-        experienceAddons = AddonsController.instance.GetExperienceAddons(id).addonsData.addons;
+        experienceAddons = AddonsController.instance.GetExperienceAddons(experienceId).addonsData.addons;
 
         if (experienceAddons == null)
         {
@@ -89,9 +95,10 @@ public class AddonsConfiguration : ConfigurationMenu
         // Create one UIAddon for each Addon
         for (int i = 0; i < experienceAddons.Count; i++)
         {
+            // Set individual addon info
             UIAddon uiAddon = Instantiate(addonPrefab, addonContainer.transform).GetComponent<UIAddon>();
-            StartCoroutine(uiAddon.Initialize(i, experienceAddons[i], this));
-            addonElements.Add(uiAddon);
+            uiAddon.Initialize(i, experienceAddons[i], this);
+            ListUtils.InsertAtOrFill(addonElements, experienceAddons[i].addonId, uiAddon); // Makes sure it is inserted at id position, every addon of an application has to have a distinct id
 
         }
     }
@@ -132,7 +139,7 @@ public class AddonsConfiguration : ConfigurationMenu
         // Modify the data
         SetAddon(addon, addonId);
         // Save and send the data to experience
-        AddonsController.instance.UpdateAllExperienceAddons(experienceAddons, id);
+        AddonsController.instance.UpdateAllExperienceAddons(experienceAddons, experienceId);
     }
 
     private void SetAddon(Addon addon, int addonId)

@@ -48,6 +48,7 @@ public class ErrorController : MonoBehaviour
         {
             loadingBox.GetComponent<CanvasGroup>().alpha = 0;
             StopCoroutine(loadingCoroutine);
+            alertCoroutineRunning = false;
         }
     }
 
@@ -56,6 +57,12 @@ public class ErrorController : MonoBehaviour
     private IEnumerator SetAlert(string alertMessage, float alertDuration, TextMeshProUGUI dialog)
     {
         alertCoroutineRunning = true;
+        
+        if(alertDuration > 300)
+        {
+            alertCoroutineRunning = false;
+        }
+
         // Set message to alert
         dialog.SetText(alertMessage);
 
