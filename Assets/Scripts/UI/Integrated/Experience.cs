@@ -316,7 +316,6 @@ public class Experience : MonoBehaviour
             yield return StartCoroutine(configurationMenuFader.FadeOut());
             // Clear component
             configurationMenu.isOpen = false;
-            configurationMenu.gameObject.SetActive(false);
         }
     }
 

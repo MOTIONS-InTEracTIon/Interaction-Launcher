@@ -58,8 +58,6 @@ public class InputConfiguration : ConfigurationMenu
         {
             modeDropdown.dropdown.captionText.text = LocalizationController.instance.FetchString("baseStrings", "input_binder_defaultmode");
         }
-        // Update InputController with experience inputs
-        InputController.instance.GetExperienceInputActionData(experienceId);
     }
 
     private void FillDevices()
