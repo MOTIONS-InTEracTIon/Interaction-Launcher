@@ -1,9 +1,14 @@
 # Interaction Launcher
  Launcher for experiences 
+
+Videos:
+
+Demo de funciones principales: https://drive.google.com/file/d/1ALqRAxy2odvdaHaqom1MyCYqDC809scy/view?usp=sharing
+Descripción de sistemas a fondo: https://drive.google.com/file/d/1TkDiSc1ARMMK0gIe5DwCvsEpcvYUsMs0/view?usp=sharing
  
 Useful Info:
 
-Para inicializar una aplicación o lanzar un nuevo release:
+Para inicializar una aplicación o lanzar un nuevo release (Para aplicaciones de Unity, se puede usar como referencia):
 - Agregar addons a una carpeta con el nombre del tipo del addon en root/Addons/
      Ej. root/Addons/Environment/
 - Si se tiene addons.json en root, borrarlo.
